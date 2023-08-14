@@ -1,0 +1,254 @@
+
+<!DOCTYPE html>
+<html class="no-js ss-preload" lang="en">
+<head>
+
+    <!--- basic page needs
+    ================================================== -->
+    <meta charset="utf-8">
+    <title>Ken Huang</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- mobile specific metas
+    ================================================== -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- CSS
+    ================================================== -->
+    <link rel="stylesheet" type="text/css" href="/theme/css/vendor.css" />
+
+    <link rel="stylesheet" type="text/css" href="/theme/css/styles.css" />
+
+    <link rel="stylesheet" type="text/css" href="/theme/css/pygments.css" />
+
+
+    <!-- favicons
+    ================================================== -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/theme/images/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/theme/images/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/theme/images/favicons/favicon-16x16.png">
+    <link rel="manifest" href="/theme/site.webmanifest">
+
+</head>
+
+<body id="top">
+
+
+    <!-- # preloader
+    ================================================== -->
+    <div id="preloader">
+        <div id="loader">
+        </div>
+    </div>
+
+
+    <!-- # page wrap
+    ================================================== -->
+    <div class="s-pagewrap">
+
+        <div class="circles">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+
+        <!-- ## site header 
+        ================================================== -->
+<header class="s-header">
+
+    <div class="header-mobile">
+        <span class="mobile-home-link"><a href="index.html">Ken Huang.</a></span>
+        <a class="mobile-menu-toggle" href="#0"><span>Menu</span></a>
+    </div>
+
+    <div class="row wide main-nav-wrap">
+        <nav class="column lg-12 main-nav">
+            <ul>
+                <li><a href="index.html" class="home-link">Ken Huang</a></li>
+                <li class="current"><a href="#intro" class="smoothscroll">Intro</a></li>
+                <li><a href="#about" class="smoothscroll">About</a></li>
+                <li><a href="#works" class="smoothscroll">Works</a></li>
+                <li><a href="/blog" class="">Blog</a></li>
+            </ul>
+        </nav>
+    </div>
+
+</header>        <!-- end s-header -->
+
+
+        <main class="s-content">
+
+        <!-- # site main content
+        ================================================== -->
+        <article id="content" class="s-content entry">
+
+            <div class="s-pageheader entry__header">
+                <div class="row">
+                    <div class="column xl-12">
+
+                        <h1 class="entry__title">
+                            Implementing the Singleton Design Pattern in Go
+                        </h1> <!-- end entry__title -->
+
+                        <div class="entry__meta">
+                            <div class="entry__meta-date">
+                                <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="7.25" stroke="currentColor" stroke-width="1.5"></circle>
+                                    <path stroke="currentColor" stroke-width="1.5" d="M12 8V12L14 14"></path>
+                                </svg>
+                                Tuesday, August 15, 2023
+                            </div>
+                            <div class="entry__meta-cat">
+                                <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.25 17.25V9.75C19.25 8.64543 18.3546 7.75 17.25 7.75H4.75V17.25C4.75 18.3546 5.64543 19.25 6.75 19.25H17.25C18.3546 19.25 19.25 18.3546 19.25 17.25Z"></path>
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.5 7.5L12.5685 5.7923C12.2181 5.14977 11.5446 4.75 10.8127 4.75H6.75C5.64543 4.75 4.75 5.64543 4.75 6.75V11"></path>
+                                </svg>
+                                <span class="cat-links">
+                                    <a href="">Go</a>
+                                    <a href="">Design Patterns</a>
+                                    <a href="">Singleton</a>
+                                </span>
+                            </div>
+                        </div> <!-- end entry__meta -->
+
+                    </div>
+                </div>
+            </div> <!-- end entry__header -->
+
+            <div class="s-pagecontent entry__content">
+
+                <div class="row entry__media">
+                    <div class="column xl-12">
+                        <figure class="featured-image">
+                            <img src="images/thumbs/single/standard-1200.jpg"
+                                 srcset="images/thumbs/single/standard-2400.jpg 2400w,
+                                         images/thumbs/single/standard-1200.jpg 1200w,
+                                         images/thumbs/single/standard-600.jpg 600w" sizes="(max-width: 2400px) 100vw, 2400px" alt="">
+                        </figure>
+                    </div>
+                </div> <!-- end entry__media -->
+
+                <div class="row entry__primary width-narrower">
+                    <div class="column xl-12">
+                         <h1>Implementing the Singleton Design Pattern in Go</h1>
+<p>In software design, the Singleton pattern is a creational design pattern that ensures a class has only one instance and provides a global point of access to that instance. In this article, we'll explore how to implement the Singleton pattern in the Go programming language for a Pelican Markdown article website.</p>
+<h2>The Singleton Design Pattern</h2>
+<p>The Singleton pattern is particularly useful when you want to ensure there's only one instance of a class, such as a configuration manager or a database connection pool. This can prevent resource wastage and synchronization issues.</p>
+<h2>Implementing Singleton in Go</h2>
+<p>Let's implement a Singleton pattern for managing Pelican Markdown articles in Go.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span><span class="w"></span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span><span class="w"></span>
+<span class="w">    </span><span class="s">&quot;sync&quot;</span><span class="w"></span>
+<span class="p">)</span><span class="w"></span>
+
+<span class="c1">// Article represents a Pelican Markdown article</span><span class="w"></span>
+<span class="kd">type</span><span class="w"> </span><span class="nx">Article</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nx">Title</span><span class="w">   </span><span class="kt">string</span><span class="w"></span>
+<span class="w">    </span><span class="nx">Content</span><span class="w"> </span><span class="kt">string</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="c1">// SingletonArticleManager is a struct that manages a single instance of Article</span><span class="w"></span>
+<span class="kd">type</span><span class="w"> </span><span class="nx">SingletonArticleManager</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nx">article</span><span class="w"> </span><span class="o">*</span><span class="nx">Article</span><span class="w"></span>
+<span class="w">    </span><span class="nx">once</span><span class="w">    </span><span class="nx">sync</span><span class="p">.</span><span class="nx">Once</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="kd">var</span><span class="w"> </span><span class="nx">instance</span><span class="w"> </span><span class="o">*</span><span class="nx">SingletonArticleManager</span><span class="w"></span>
+
+<span class="c1">// GetInstance returns the single instance of SingletonArticleManager</span><span class="w"></span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">GetInstance</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="nx">SingletonArticleManager</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">instance</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nx">instance</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">SingletonArticleManager</span><span class="p">{}</span><span class="w"></span>
+<span class="w">        </span><span class="nx">instance</span><span class="p">.</span><span class="nx">init</span><span class="p">()</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">instance</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="c1">// init is used to initialize the singleton instance</span><span class="w"></span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><span class="nx">SingletonArticleManager</span><span class="p">)</span><span class="w"> </span><span class="nx">init</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nx">s</span><span class="p">.</span><span class="nx">once</span><span class="p">.</span><span class="nx">Do</span><span class="p">(</span><span class="kd">func</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="c1">// Initialize the default article</span><span class="w"></span>
+<span class="w">        </span><span class="nx">s</span><span class="p">.</span><span class="nx">article</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">Article</span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="nx">Title</span><span class="p">:</span><span class="w">   </span><span class="s">&quot;Default Title&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nx">Content</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Default Content&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">})</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="c1">// GetArticle returns the current Article managed by the singleton</span><span class="w"></span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><span class="nx">SingletonArticleManager</span><span class="p">)</span><span class="w"> </span><span class="nx">GetArticle</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="nx">Article</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">article</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="c1">// UpdateArticle updates the content of the managed Article</span><span class="w"></span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><span class="nx">SingletonArticleManager</span><span class="p">)</span><span class="w"> </span><span class="nx">UpdateArticle</span><span class="p">(</span><span class="nx">title</span><span class="p">,</span><span class="w"> </span><span class="nx">content</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nx">s</span><span class="p">.</span><span class="nx">article</span><span class="p">.</span><span class="nx">Title</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">title</span><span class="w"></span>
+<span class="w">    </span><span class="nx">s</span><span class="p">.</span><span class="nx">article</span><span class="p">.</span><span class="nx">Content</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">content</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// Usage example</span><span class="w"></span>
+<span class="w">    </span><span class="nx">manager</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">GetInstance</span><span class="p">()</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">// Get the managed article</span><span class="w"></span>
+<span class="w">    </span><span class="nx">article</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">manager</span><span class="p">.</span><span class="nx">GetArticle</span><span class="p">()</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">// Print article details</span><span class="w"></span>
+<span class="w">    </span><span class="nb">println</span><span class="p">(</span><span class="s">&quot;Article Title:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">article</span><span class="p">.</span><span class="nx">Title</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="nb">println</span><span class="p">(</span><span class="s">&quot;Article Content:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">article</span><span class="p">.</span><span class="nx">Content</span><span class="p">)</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+
+<p>In this example, the <code>SingletonArticleManager</code> struct manages a single instance of the Article struct. We use the sync.Once type to ensure that initialization happens only once. The GetInstance function provides access to the singleton instance.</p>
+<h1>Conclusion</h1>
+<p>The Singleton design pattern is a powerful tool for ensuring a single instance of a class in your application. In Go, you can implement this pattern using synchronization mechanisms like sync.Once to ensure safe and efficient initialization.</p>
+
+                        <div class="post-nav">
+
+
+                        </div> <!-- end post-nav -->
+                    </div> <!-- end column-->
+                </div> <!-- end entry__primary -->
+
+            </div> <!-- end entry__content -->
+
+        </article> <!-- s-content entry-->
+
+        </main>
+
+        <!-- ## footer
+        ================================================== -->
+<footer class="s-footer">
+
+    <div class="row">
+        <div class="column ss-copyright">
+            <span>© Copyright Ken Huang 2023</span>
+            <span>Design by <a href="https://www.styleshout.com/">StyleShout</a></span>
+        </div>
+
+        <div class="ss-go-top">
+            <a class="smoothscroll" title="Back to Top" href="#top">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill-rule="evenodd" clip-rule="evenodd"><path d="M11 2.206l-6.235 7.528-.765-.645 7.521-9 7.479 9-.764.646-6.236-7.53v21.884h-1v-21.883z"/></svg>
+            </a>
+        </div>
+    </div>
+</footer>        <!-- end s-footer -->
+
+    </div> <!-- end -s-pagewrap -->
+
+
+    <!-- Java Script
+    ================================================== -->
+
+    <script src="/theme/js/plugins.js"></script>
+
+    <script src="/theme/js/main.js"></script>
+
+
+</body>
+</html>

@@ -97,6 +97,7 @@
      */
     --color-1 : hsla(36, 72%, 70%, 1);
     --color-2 : hsla(168, 62%, 36%, 1);
+    --color-3 : hsla(39, 93%, 95%, 1);
 
     /* theme color variations
      */
@@ -108,6 +109,14 @@
     --color-2-light   : hsla(168, 62%, 46%, 1);
     --color-2-dark    : hsla(168, 62%, 26%, 1);
     --color-2-darker  : hsla(168, 62%, 16%, 1);
+    --color-3-light                : hsla(39, 93%, 100%, 1);
+	--color-3-dark                 : hsla(39, 93%, 85%, 1);
+	--color-3-darker               : hsla(39, 93%, 75%, 1);
+    --color-4-lightest             : hsla(127, 8%, 55%, 1);
+	--color-4-lighter              : hsla(127, 8%, 42%, 1);
+	--color-4-light                : hsla(127, 8%, 32%, 1);
+	--color-4-dark                 : hsla(127, 8%, 14%, 1);
+	--color-4-darker               : hsla(127, 8%, 2%, 1);
 
     /* feedback colors
      * color-error(#ffd1d2), color-success(#c8e675), 
@@ -218,6 +227,16 @@
     --vspace-4     : calc(4 * var(--space));
     --vspace-4_5   : calc(4.5 * var(--space));
     --vspace-5     : calc(5 * var(--space));
+    --vspace-5_5       : calc(5.5 * var(--space));
+	--vspace-6         : calc(6 * var(--space));
+	--vspace-6_5       : calc(6.5 * var(--space));
+	--vspace-7         : calc(7 * var(--space));
+	--vspace-7_5       : calc(7.5 * var(--space));
+	--vspace-8         : calc(8 * var(--space));
+	--vspace-8_5       : calc(8.5 * var(--space));
+	--vspace-9         : calc(9 * var(--space));
+	--vspace-9_5       : calc(9.5 * var(--space));
+	--vspace-10        : calc(10 * var(--space));
 
     /* type scale
      * ratio 1:2 | base: 19px
@@ -249,6 +268,9 @@
     --text-display-1   : calc(var(--text-xxxl) * var(--text-scale-ratio));
     --text-display-2   : calc(var(--text-display-1) * var(--text-scale-ratio));
     --text-display-3   : calc(var(--text-display-2) * var(--text-scale-ratio));
+    --text-huge-1      : calc(var(--text-display-3) * var(--text-scale-ratio));
+	--text-huge-2      : calc(var(--text-huge-1) * var(--text-scale-ratio));
+	--text-huge-3      : calc(var(--text-huge-2) * var(--text-scale-ratio));
 
     /* default button height
      */
@@ -4237,4 +4259,358 @@ img.u-pull-left {
     .ss-go-top {
         right : 6vw;
     }
+}
+
+/* post navigation
+ */
+.post-nav {
+	display      : flex;
+	margin-top   : var(--vspace-2_5);
+	padding      : var(--vspace-1_25) 0 var(--vspace-2);
+	border-top   : 1px solid var(--color-border);
+	border-bottom: 1px solid var(--color-border);
+	position     : relative;
+}
+
+.post-nav::before {
+	content         : "";
+	display         : block;
+	width           : 1px;
+	height          : 100%;
+	background-color: var(--color-border);
+	position        : absolute;
+	top             : 0;
+	left            : 50%;
+	bottom          : 0;
+}
+
+.post-nav__prev,
+.post-nav__next {
+	flex : none;
+	width: 50%;
+}
+
+.post-nav__prev {
+	padding-right: calc(var(--gutter) + 1.2rem);
+}
+
+.post-nav__next {
+	padding-left: calc(var(--gutter) + 1.2rem);
+	margin-left : auto;
+}
+
+.post-nav a {
+	font-family: var(--font-1);
+	font-size  : var(--text-md);
+	line-height: 1.1667;
+	color      : var(--color-text);
+}
+
+.post-nav span {
+	display      : block;
+	font-family  : var(--font-1);
+	font-weight  : 400;
+	font-size    : var(--text-sm);
+	line-height  : var(--vspace-1);
+	color        : var(--color-1);
+	margin-left  : 0.2rem;
+	margin-bottom: var(--vspace-0_25);
+}
+
+/* -------------------------------------------------------------------
+ * ## blog card
+ * ------------------------------------------------------------------- */
+.blog-card__header {
+	margin-bottom: var(--vspace-0_75);
+}
+
+.blog-card__cat-links {
+	font-size: var(--text-sm);
+}
+
+.blog-card__cat-links a {
+	color: var(--color-1);
+}
+
+.blog-card__title {
+	margin     : 0;
+	line-height: 1.1574;
+}
+
+.blog-card__title a {
+	color: var(--color-text-dark);
+}
+
+/* ===================================================================
+ * # GRID-BASED LAYOUTS
+ *
+ *
+ * ------------------------------------------------------------------- */
+
+/* --------------------------------------------------------------------
+ * ## grid block
+ * -------------------------------------------------------------------- */
+.grid-block {
+	--col                : 12;
+	--grid-gap-h         : calc(var(--gutter) * 2);
+	--grid-gap-v         : var(--vspace-1);
+	display              : grid;
+	grid-template-columns: repeat(var(--col), [col] 1fr);
+	-moz-column-gap      : var(--grid-gap-h);
+	column-gap           : var(--grid-gap-h);
+	row-gap              : var(--grid-gap-v);
+}
+
+.grid-block.no-h-gutter {
+	--grid-gap-h: 0;
+}
+
+.grid-block.no-v-gutter {
+	--grid-gap-h: 0;
+}
+
+.grid-block .grid-full {
+	grid-column: 1/-1;
+}
+
+.grid-section-split {
+	--col             : 16;
+	grid-template-rows: auto 1fr;
+}
+
+.grid-section-split__header {
+	grid-column: 1/span 6;
+	grid-row   : 1/2;
+	align-self : start;
+}
+
+.grid-section-split__header>* {
+	width: min(55rem, 95%);
+}
+
+.grid-section-split__primary {
+	grid-column: 9/span 8;
+	grid-row   : 1/3;
+	margin-top : var(--vspace-1);
+}
+
+.grid-section-split__bottom {
+	grid-column: 1/span 4;
+	grid-row   : 2;
+}
+
+/* -------------------------------------------------------------------
+ * ## list grid
+ * ------------------------------------------------------------------- */
+.grid-list-items {
+	--gap                : calc(var(--gutter) * 2);
+	--min-width          : 360px;
+	display              : grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(var(--min-width), 100%), 1fr));
+	-moz-column-gap      : var(--gap);
+	column-gap           : var(--gap);
+}
+
+.grid-list-items__item {
+	margin-bottom: var(--vspace-0_5);
+}
+
+/* -------------------------------------------------------------------
+ * responsive:
+ * grid layouts
+ * ------------------------------------------------------------------- */
+@media screen and (max-width: 1600px) {
+	.grid-section-split__header {
+		grid-column: 1/span 8;
+	}
+
+	.grid-section-split__primary {
+		grid-column: 9/span 8;
+	}
+
+	.grid-section-split__bottom {
+		grid-column: 1/span 4;
+	}
+}
+
+@media screen and (max-width: 1200px) {
+	.grid-section-split__header {
+		grid-column: 1/-1;
+	}
+
+	.grid-section-split__header>* {
+		width: auto;
+	}
+
+	.grid-section-split__primary {
+		grid-column: 1/-1;
+		grid-row   : auto;
+		margin-top : 0;
+	}
+
+	.grid-section-split__bottom {
+		grid-column: 1/-1;
+		grid-row   : auto;
+	}
+}
+
+@media screen and (max-width: 800px) {
+	.grid-block {
+		--col: 8;
+	}
+}
+
+@media screen and (max-width: 600px) {
+	.grid-block {
+		--col: 4;
+	}
+}
+
+/* ===================================================================
+ * # PAGEHEADER & PAGECONTENT
+ *
+ *
+ * ------------------------------------------------------------------- */
+.s-pageheader {
+	padding-top     : var(--vspace-6);
+	padding-bottom  : var(--vspace-3);
+	background-color: var(--color-4-dark);
+	text-align      : center;
+}
+
+.s-pageheader .page-title {
+	margin-top : 0;
+	font-size  : clamp(5.2rem, 10vw, var(--text-huge-1));
+	line-height: 1.0465;
+	color      : var(--color-3);
+}
+
+.s-pageheader .page-title__small-type {
+	display      : block;
+	margin-bottom: 0;
+}
+
+.s-pagecontent {
+	padding-top   : var(--vspace-4);
+	padding-bottom: var(--vspace-3);
+}
+
+.s-pagecontent .pageintro {
+	margin-bottom: var(--vspace-2_5);
+}
+
+.s-pagecontent .pageintro h1,
+.s-pagecontent .pageintro h2 {
+	margin-top   : 0;
+	margin-bottom: var(--vspace-1_5);
+}
+
+.s-pagecontent .pagination {
+	margin-top: var(--vspace-2);
+}
+
+/* -------------------------------------------------------------------
+ * responsive:
+ * pageheader & pagecontent
+ * ------------------------------------------------------------------- */
+@media screen and (max-width: 1200px) {
+
+	.s-pagecontent .pageintro h1,
+	.s-pagecontent .pageintro h2 {
+		text-align: center;
+	}
+}
+
+@media screen and (max-width: 800px) {
+	.s-pageheader {
+		padding-top   : var(--vspace-5);
+		padding-bottom: var(--vspace-2);
+	}
+
+	.s-pagecontent .pageintro {
+		margin-bottom: var(--vspace-1_5);
+	}
+}
+
+@media screen and (max-width: 600px) {
+	.s-pagecontent {
+		padding-top: var(--vspace-3);
+	}
+}
+
+/* ===================================================================
+ * # BLOG STYLES
+ *
+ *
+ * ------------------------------------------------------------------- */
+.entry__header {
+	--width-grid-max: min(90%, var(--width-narrower));
+}
+
+.entry__title {
+	margin-top : 0;
+	font-size  : clamp(5rem, 7vw, var(--text-display-3));
+	line-height: 1.1163;
+	color      : var(--color-3);
+}
+
+.entry__meta {
+	display        : flex;
+	flex-flow      : row wrap;
+	align-items    : center;
+	justify-content: center;
+	font-size      : calc(var(--text-size) * 0.9);
+	font-weight    : 300;
+	color          : rgba(255, 255, 255, 0.7);
+	margin-top     : var(--vspace-1);
+}
+
+.entry__meta a {
+	color: rgba(255, 255, 255, 0.7);
+}
+
+.entry__meta .cat-links a::after {
+	content: ", ";
+}
+
+.entry__meta .cat-links a:last-child::after {
+	display: none;
+}
+
+.entry__meta>[class*=entry__meta] {
+	display    : flex;
+	align-items: center;
+	margin     : 0 var(--vspace-0_75);
+}
+
+.entry__meta>[class*=entry__meta] svg {
+	margin-right: 0.4rem;
+	height      : var(--vspace-0_875);
+	width       : var(--vspace-0_875);
+}
+
+.entry__meta>[class*=entry__meta] svg path,
+.entry__meta>[class*=entry__meta] svg circle {
+	stroke: var(--color-1);
+}
+
+.entry__content {
+	padding-top: var(--vspace-3);
+}
+
+.entry__media {
+	margin-top   : var(--vspace-0_5);
+	margin-bottom: var(--vspace-2_5);
+}
+
+.entry__media .featured-image {
+	margin: 0;
+}
+
+.entry__media img {
+	vertical-align: bottom;
+}
+
+.entry__primary figure {
+	margin: var(--vspace-2) 0;
 }
