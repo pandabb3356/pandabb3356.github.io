@@ -4605,10 +4605,18 @@ img.u-pull-left {
 
 .entry__media .featured-image {
 	margin: 0;
+    text-align: center;
+}
+
+.entry__media .featured-image-title {
+    text-align: center;
+    font-size: 16px;
+    font-style: italic;
 }
 
 .entry__media img {
 	vertical-align: bottom;
+    width: 100%;
 }
 
 .entry__primary figure {
