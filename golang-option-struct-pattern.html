@@ -1,0 +1,267 @@
+
+<!DOCTYPE html>
+<html class="no-js ss-preload" lang="en">
+<head>
+
+    <!--- basic page needs
+    ================================================== -->
+    <meta charset="utf-8">
+    <title>Ken Huang</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- mobile specific metas
+    ================================================== -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- CSS
+    ================================================== -->
+    <link rel="stylesheet" type="text/css" href="/theme/css/vendor.css" />
+
+    <link rel="stylesheet" type="text/css" href="/theme/css/styles.css" />
+
+
+    <link id="pygments-dark-theme" rel="stylesheet" type="text/css"
+          media="(prefers-color-scheme: dark), (prefers-color-scheme: no-preference)"
+          href="/theme/pygments/monokai.min.css"><link rel="stylesheet" type="text/css" href="/theme/font-awesome/css/fontawesome.css">
+    <link rel="stylesheet" type="text/css" href="/theme/font-awesome/css/brands.css">
+    <link rel="stylesheet" type="text/css" href="/theme/font-awesome/css/solid.css">
+
+    <!-- favicons
+    ================================================== -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/theme/images/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/theme/images/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/theme/images/favicons/favicon-16x16.png">
+    <link rel="manifest" href="/theme/site.webmanifest">
+
+</head>
+
+<body id="top">
+
+
+<!-- # preloader
+================================================== -->
+<div id="preloader">
+    <div id="loader">
+    </div>
+</div>
+
+
+<!-- # page wrap
+================================================== -->
+<div class="s-pagewrap">
+
+    <div class="circles">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+
+    <!-- ## site header
+    ================================================== -->
+<header class="s-header">
+
+    <div class="header-mobile">
+        <span class="mobile-home-link"><a href="index.html">Ken Huang.</a></span>
+        <a class="mobile-menu-toggle" href="#0"><span>Menu</span></a>
+    </div>
+
+    <div class="row wide main-nav-wrap">
+        <nav class="column lg-12 main-nav">
+            <ul>
+                <li><a href="index.html" class="home-link">Ken Huang</a></li>
+                <li class="current"><a href="#intro" class="smoothscroll">Intro</a></li>
+                <li><a href="#about" class="smoothscroll">About</a></li>
+                <li><a href="#works" class="smoothscroll">Works</a></li>
+                <li><a href="/blog" class="">Blog</a></li>
+            </ul>
+        </nav>
+    </div>
+
+</header>    <!-- end s-header -->
+
+
+    <main class="s-content">
+
+        <!-- # site main content
+        ================================================== -->
+        <article id="content" class="s-content entry">
+
+            <div class="s-pageheader entry__header">
+                <div class="row">
+                    <div class="column xl-12">
+
+                        <h1 class="entry__title">
+                            Exploring the Option Struct Pattern in Go
+                        </h1> <!-- end entry__title -->
+
+                        <div class="entry__meta">
+                            <div class="entry__meta-date">
+                                <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="7.25" stroke="currentColor" stroke-width="1.5"></circle>
+                                    <path stroke="currentColor" stroke-width="1.5" d="M12 8V12L14 14"></path>
+                                </svg>
+                                August 15, 2023
+                            </div>
+                            <div class="entry__meta-cat">
+                                <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.25 17.25V9.75C19.25 8.64543 18.3546 7.75 17.25 7.75H4.75V17.25C4.75 18.3546 5.64543 19.25 6.75 19.25H17.25C18.3546 19.25 19.25 18.3546 19.25 17.25Z"></path>
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.5 7.5L12.5685 5.7923C12.2181 5.14977 11.5446 4.75 10.8127 4.75H6.75C5.64543 4.75 4.75 5.64543 4.75 6.75V11"></path>
+                                </svg>
+                                <span class="cat-links">
+                                    <a href="/tag/golang.html">Golang</a>
+                                    <a href="/tag/design-patterns.html">Design Patterns</a>
+                                    <a href="/tag/option-struct.html">Option Struct</a>
+                                    <a href="/tag/error-handling.html">Error Handling</a>
+                                </span>
+                            </div>
+                        </div> <!-- end entry__meta -->
+
+                    </div>
+                </div>
+            </div> <!-- end entry__header -->
+
+            <div class="s-pagecontent entry__content">
+
+                <div class="row entry__media">
+                    <div class="column xl-12">
+                        <figure class="featured-image">
+                            <img src="/images/hannah-joshua-46T6nVjRc2w-unsplash.jpg" alt=""/>
+                        </figure>
+                        <div class="featured-image-title">
+                            Photo by <a href="https://unsplash.com/@hannahjoshua?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">hannah joshua</a> on <a href="https://unsplash.com/photos/46T6nVjRc2w?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
+                        </div>
+                    </div>
+                </div> <!-- end entry__media -->
+
+                <div class="row entry__primary width-narrower">
+                    <div class="column xl-12">
+                         <p>When working with the Go programming language, developers often encounter situations where functions may return values that could be missing or have a special meaning. The Option struct pattern is a powerful approach to address this, providing a clean and idiomatic way to handle optional values and errors. In this article, we'll delve into why and how Go uses the Option struct pattern.</p>
+<h2>The Problem of Optional Values and Errors</h2>
+<p>In Go, functions often return multiple values, where one of them represents an error. However, some functions may also return optional values that indicate the absence of data or a specific condition. This can make code harder to read and maintain, as developers must constantly check for errors and optional values, leading to code clutter.</p>
+<h2>Introducing the Option Struct</h2>
+<p>The Option struct pattern is a design approach that uses a custom type, usually called <code>Option</code> or a similar name, to wrap values that could be absent. This pattern enhances code readability by making the presence or absence of a value explicit, removing the need for constant error checks.</p>
+<p>Here's an example of how the Option struct pattern works in Go:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span><span class="w"></span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span><span class="w"></span>
+<span class="w">    </span><span class="s">&quot;errors&quot;</span><span class="w"></span>
+<span class="w">    </span><span class="s">&quot;fmt&quot;</span><span class="w"></span>
+<span class="p">)</span><span class="w"></span>
+
+<span class="c1">// Option represents an optional value or an error</span><span class="w"></span>
+<span class="kd">type</span><span class="w"> </span><span class="nx">Option</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nx">Value</span><span class="w"> </span><span class="kd">interface</span><span class="p">{}</span><span class="w"></span>
+<span class="w">    </span><span class="nx">Err</span><span class="w">   </span><span class="kt">error</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="c1">// NewOption creates a new Option with a value</span><span class="w"></span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">NewOption</span><span class="p">(</span><span class="nx">val</span><span class="w"> </span><span class="kd">interface</span><span class="p">{})</span><span class="w"> </span><span class="nx">Option</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">Option</span><span class="p">{</span><span class="nx">Value</span><span class="p">:</span><span class="w"> </span><span class="nx">val</span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="c1">// NewErrorOption creates a new Option with an error</span><span class="w"></span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">NewErrorOption</span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="nx">Option</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">Option</span><span class="p">{</span><span class="nx">Err</span><span class="p">:</span><span class="w"> </span><span class="nx">err</span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="c1">// main function demonstrates the use of Option struct</span><span class="w"></span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nx">data</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="p">[]</span><span class="kt">int</span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="nx">result</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">findElement</span><span class="p">(</span><span class="nx">data</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">result</span><span class="p">.</span><span class="nx">Err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Error:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">result</span><span class="p">.</span><span class="nx">Err</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Value found:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">result</span><span class="p">.</span><span class="nx">Value</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="c1">// findElement searches for an element in a slice</span><span class="w"></span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">findElement</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">[]</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="nx">target</span><span class="w"> </span><span class="kt">int</span><span class="p">)</span><span class="w"> </span><span class="nx">Option</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">val</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="k">range</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">val</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nx">target</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="nx">NewOption</span><span class="p">(</span><span class="nx">val</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">NewErrorOption</span><span class="p">(</span><span class="nx">errors</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="s">&quot;Element not found&quot;</span><span class="p">))</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+
+<p>In this example, the Option struct wraps the value or error, making the code more self-explanatory. Functions like NewOption and NewErrorOption help create instances of the Option struct with the appropriate value or error.</p>
+<h2>Benefits of the Option Struct Pattern</h2>
+<ul>
+<li><strong>Improved Readability</strong>: The Option struct makes it clear whether a value is present or not, reducing the need for complex error handling logic.</li>
+<li><strong>Simpler Error Handling</strong>: By encapsulating the error within the Option struct, you can handle errors uniformly without mixing them with normal values.</li>
+<li><strong>Clearer Intent</strong>: Code that uses the Option struct pattern conveys the intention explicitly, making the developer's intent clearer and reducing ambiguity.</li>
+</ul>
+<h2>Conclusion</h2>
+<p>The Option struct pattern is a valuable technique in Go for handling optional values and errors. By encapsulating values and errors within a single construct, Go developers can write more concise, readable, and maintainable code. This pattern aligns with Go's philosophy of simplicity and clarity, making it a powerful tool for writing clean and effective programs.</p>
+
+                        <div class="post-nav">
+                                <div class="post-nav__prev">
+                                    <span>Prev</span>
+                                    <a rel="prev" href="/golang-singleton-pattern.html">← Implementing the Singleton Design Pattern in Go</a>
+                                </div>
+
+                                <div class="post-nav__next">
+                                    <span>Next</span>
+                                    <a rel="next" href="/golang-adapter-pattern.html">Mastering the Adapter Design Pattern in Go →</a>
+                                </div>
+
+                        </div> <!-- end post-nav -->
+                    </div> <!-- end column-->
+                </div> <!-- end entry__primary -->
+
+            </div> <!-- end entry__content -->
+
+        </article> <!-- s-content entry-->
+
+    </main>
+
+    <!-- ## footer
+    ================================================== -->
+<footer class="s-footer">
+
+    <div class="row">
+        <div class="column ss-copyright">
+            <span>Powered by <a href="https://getpelican.com/">Pelican</a></span>
+            <span>© Copyright Ken Huang 2023</span>
+            <span>Design by <a href="https://www.styleshout.com/">StyleShout</a></span>
+        </div>
+
+        <div class="ss-go-top">
+            <a class="smoothscroll" title="Back to Top" href="#top">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill-rule="evenodd" clip-rule="evenodd"><path d="M11 2.206l-6.235 7.528-.765-.645 7.521-9 7.479 9-.764.646-6.236-7.53v21.884h-1v-21.883z"/></svg>
+            </a>
+        </div>
+    </div>
+</footer>    <!-- end s-footer -->
+
+</div> <!-- end -s-pagewrap -->
+
+
+<!-- Java Script
+================================================== -->
+
+<script src="/theme/js/plugins.js"></script>
+
+<script src="/theme/js/main.js"></script>
+
+
+    
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-M3C36GR88F"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-M3C36GR88F');
+</script>
+
+</body>
+</html>
