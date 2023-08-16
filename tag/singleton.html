@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html class="no-js ss-preload" lang="en">
 <head>
@@ -6,7 +7,7 @@
     <!--- basic page needs
     ================================================== -->
     <meta charset="utf-8">
-    <title> Singleton | Ken Huang</title>
+    <title> Singleton | KH</title>
     <meta name="description" content="">
     <meta name="author" content="">
 
@@ -29,11 +30,33 @@
 
     <!-- favicons
     ================================================== -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/theme/images/favicons/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/theme/images/favicons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/theme/images/favicons/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180"
+          href="/theme/images/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32"
+          href="/theme/images/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16"
+          href="/theme/images/favicons/favicon-16x16.png">
     <link rel="manifest" href="/theme/site.webmanifest">
 
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="KH"/>
+    <meta property="og:type" content="blog"/>
+    <meta property="og:title" content="tag/singleton | KH"/>
+    <meta property="og:description" content=""/>
+    <meta property="og:locale" content="en_US"/>
+    <meta property="og:url" content=""/>
+        <meta property="og:image" content="/theme//images/logos/logo-main.png">
+        <meta property="og:image:secure_url" content="/theme//images/logos/logo-main.png">
+        <meta property="og:image:width" content="497">
+        <meta property="og:image:height" content="310">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="tag/singleton | KH">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:image" content="/theme//images/logos/logo-main.png">
+    <meta name="twitter:url" content="">
 </head>
 
 <body id="top">
@@ -62,21 +85,40 @@
 
     <!-- ## site header
     ================================================== -->
+
+
+
+
+
 <header class="s-header">
 
     <div class="header-mobile">
-        <span class="mobile-home-link"><a href="index.html">Ken Huang.</a></span>
+        <span class="mobile-home-link">
+            <a href="/">
+                <img alt="" src="/theme//images/logos/logo-main.png"/>
+            </a>
+        </span>
         <a class="mobile-menu-toggle" href="#0"><span>Menu</span></a>
     </div>
 
     <div class="row wide main-nav-wrap">
         <nav class="column lg-12 main-nav">
             <ul>
-                <li><a href="/" class="home-link">Ken Huang</a></li>
-                <li><a href="/#intro" class="">Intro</a></li>
-                <li><a href="/#about" class="">About</a></li>
-                <li><a href="/#works" class="">Works</a></li>
-                <li class="current"><a href="/blog" class="">Blog</a></li>
+                <li><a href="/" class="home-link"><img alt=""
+                                                       src="/theme/images/logos/logo-main.png"/></a>
+                </li>
+                <li class="">
+                    <a href="/#intro" class="">Intro</a>
+                </li>
+                <li class="">
+                    <a href="/#about" class="">About</a>
+                </li>
+                <li class="">
+                    <a href="/#works" class="">Works</a>
+                </li>
+                <li class="current">
+                    <a href="/blog" class="">Blog</a>
+                </li>
             </ul>
         </nav>
     </div>
@@ -113,7 +155,7 @@
                                                 <h3 class="blog-card__title"><a href="/golang-singleton-pattern.html">Implementing the Singleton Design Pattern in Go</a></h3>
                                             </div>
                                             <div>
-                                                <img src="/images/stephen-crane-xrQRs03TcKs-unsplash.jpg" alt=""/>
+                                                <img loading="lazy" src="/images/stephen-crane-xrQRs03TcKs-unsplash.jpg" alt=""/>
                                             </div>
                                             <div class="blog-card__text">
                                                  <p>In software design, the Singleton pattern is a creational design pattern that ensures a class has only one instance and provides a global point of access to that instance.</p>
@@ -170,6 +212,10 @@
 <script src="/theme/js/plugins.js"></script>
 
 <script src="/theme/js/main.js"></script>
+
+<script src="/theme/js/clipboard.min.js"></script>
+
+<script src="/theme/js/custom.js"></script>
 
 
     

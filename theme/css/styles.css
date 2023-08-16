@@ -2985,6 +2985,13 @@ img.u-pull-left {
     color : var(--color-1);
 }
 
+.home-link img,
+.mobile-home-link a img {
+    max-height: 40px;
+    margin: 0;
+    vertical-align: middle;
+}
+
 .mobile-home-link {
     display  : inline-block;
     position : relative;
@@ -4622,3 +4629,40 @@ img.u-pull-left {
 .entry__primary figure {
 	margin: var(--vspace-2) 0;
 }
+
+/* ===================================================================
+ * # CUSTOM STYLES
+ *
+ *
+ * ------------------------------------------------------------------- */
+
+.highlight pre {
+    position: relative;
+    /*padding-top: 30px; !* Adjust depending on the size of your button *!*/
+}
+
+.copy-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgba(0, 0, 0, 0.54); /* Adjust for your theme's color */
+    font-size: 20px; /* Adjust to your preference */
+    opacity: 0.7;
+    transition: opacity 0.3s;
+    outline: none;
+    padding: 5px 10px;
+    width: 40px;
+    height: 42px;
+    text-align: center;
+}
+
+
+.copy-btn:hover, .copy-btn:focus {
+    opacity: 1;
+    padding: 5px 10px;
+    background: var(--color-white);
+}
+
