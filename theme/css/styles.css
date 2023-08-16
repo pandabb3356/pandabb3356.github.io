@@ -2987,6 +2987,7 @@ img.u-pull-left {
 
 .home-link img,
 .mobile-home-link a img {
+    height: 40px;
     max-height: 40px;
     margin: 0;
     vertical-align: middle;
