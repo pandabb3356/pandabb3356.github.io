@@ -4638,6 +4638,10 @@ img.u-pull-left {
  *
  * ------------------------------------------------------------------- */
 
+/* -------------------------------------------------------------------
+ * ## Clipboard
+ * ------------------------------------------------------------------- */
+
 @keyframes scaleUp {
     from {
         transform: scale(0);
@@ -4688,5 +4692,27 @@ img.u-pull-left {
 
 .copy-btn:hover, .copy-btn:focus {
     opacity: 1;
+}
+
+/* -------------------------------------------------------------------
+ * ## Image
+ * ------------------------------------------------------------------- */
+
+.featured-image {
+	margin: 0;
+    text-align: center;
+}
+
+.featured-image-title {
+    text-align: center;
+    font-size: 16px;
+    font-style: italic;
+}
+
+.featured-image-title {
+    text-align: center;
+    font-size: 16px;
+    font-style: italic;
+    margin: 0;
 }
 
