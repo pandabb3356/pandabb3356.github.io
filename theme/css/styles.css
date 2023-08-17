@@ -4652,9 +4652,8 @@ img.u-pull-left {
 }
 
 
-.highlight pre {
+.highlight {
     position: relative;
-    /*padding-top: 30px; !* Adjust depending on the size of your button *!*/
 }
 
 .copy-btn {
