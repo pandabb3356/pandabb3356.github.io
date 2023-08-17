@@ -1,6 +1,26 @@
 // This script enhances code blocks on an HTML page by adding a copy button to each code block.
 // It uses FontAwesome icons for visual representation and the ClipboardJS library for clipboard interactions.
 
+
+const isClassExisted = (element, className) => {
+    return element.classList.contains(className)
+}
+
+const addClass = (element, className) => {
+    const classList = element.classList;
+    if (!isClassExisted(element, className)) {
+        classList.add(className)
+    }
+}
+
+const removeClass = (element, className) => {
+    const classList = element.classList;
+    if (isClassExisted(element, className)) {
+        classList.remove(className)
+    }
+}
+
+
 // Wait for the DOM to be fully loaded before executing the following code.
 document.addEventListener('DOMContentLoaded', function () {
     const DELAY_BEFORE_EXECUTION = 1000; // 1 second delay to ensure all elements are loaded.
@@ -14,8 +34,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const clipboard = new ClipboardJS('.copy-btn');
 
         // Define constants for FontAwesome icon classes, button class, and icon change delay.
-        const FA_COPY_ICON_CLASS = 'fas fa-copy';
-        const FA_CLIPBOARD_ICON_CLASS = 'fas fa-clipboard';
+        const FA_SOLID_CLASS = 'fas';
+        const FA_COPY_ICON_CLASS = 'fa-copy';
+        const FA_CLIPBOARD_ICON_CLASS = 'fa-clipboard';
         const COPY_BUTTON_CLASS = 'copy-btn';
 
         // Iterate through each code block element.
@@ -26,7 +47,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Create an icon element using FontAwesome for the button.
             const icon = document.createElement('i');
-            icon.className = FA_COPY_ICON_CLASS;
+            addClass(icon, FA_SOLID_CLASS);
+            addClass(icon, FA_COPY_ICON_CLASS);
             btn.appendChild(icon);
 
             // Extract the text content of the code within the <code> element.
@@ -43,13 +65,14 @@ document.addEventListener('DOMContentLoaded', function () {
         clipboard.on('success', function (e) {
             // Temporarily switch the icon to a clipboard icon for visual feedback.
             const icon = e.trigger.querySelector('i');
-            icon.classList.remove(FA_COPY_ICON_CLASS);
-            icon.classList.add(FA_CLIPBOARD_ICON_CLASS);
+
+            removeClass(icon, FA_COPY_ICON_CLASS);
+            addClass(icon, FA_CLIPBOARD_ICON_CLASS);
 
             // Revert the icon to the copy icon after a short delay.
             setTimeout(function () {
-                icon.classList.remove(FA_CLIPBOARD_ICON_CLASS);
-                icon.classList.add(FA_COPY_ICON_CLASS);
+                removeClass(icon, FA_CLIPBOARD_ICON_CLASS);
+                addClass(icon, FA_COPY_ICON_CLASS);
             }, DELAY_BEFORE_EXECUTION);
 
             // Clear the user's selection (highlighting) to provide feedback.
