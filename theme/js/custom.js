@@ -36,7 +36,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // Define constants for FontAwesome icon classes, button class, and icon change delay.
         const FA_SOLID_CLASS = 'fas';
         const FA_COPY_ICON_CLASS = 'fa-copy';
-        const FA_CLIPBOARD_ICON_CLASS = 'fa-clipboard';
+        const FA_COPIED_ICON_CLASS = 'fa-check';
+        const COPIED_CLASS = "copied";
         const COPY_BUTTON_CLASS = 'copy-btn';
 
         // Iterate through each code block element.
@@ -65,13 +66,16 @@ document.addEventListener('DOMContentLoaded', function () {
         clipboard.on('success', function (e) {
             // Temporarily switch the icon to a clipboard icon for visual feedback.
             const icon = e.trigger.querySelector('i');
+            const btn = e.trigger;
 
             removeClass(icon, FA_COPY_ICON_CLASS);
-            addClass(icon, FA_CLIPBOARD_ICON_CLASS);
+            addClass(icon, FA_COPIED_ICON_CLASS);
+            addClass(btn, COPIED_CLASS);
 
             // Revert the icon to the copy icon after a short delay.
             setTimeout(function () {
-                removeClass(icon, FA_CLIPBOARD_ICON_CLASS);
+                removeClass(icon, FA_COPIED_ICON_CLASS);
+                removeClass(btn, COPIED_CLASS);
                 addClass(icon, FA_COPY_ICON_CLASS);
             }, DELAY_BEFORE_EXECUTION);
 

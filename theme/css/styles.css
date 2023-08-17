@@ -190,6 +190,7 @@
      */
     --color-body    : var(--color-gray-10);
     --color-border  : rgba(255, 255, 255, .05);
+    --color-copied  : hsla(168, 62%, 56%, 1);
     --border-radius : 3px;
 }
 
@@ -4637,6 +4638,16 @@ img.u-pull-left {
  *
  * ------------------------------------------------------------------- */
 
+@keyframes scaleUp {
+    from {
+        transform: scale(0);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+
 .highlight pre {
     position: relative;
     /*padding-top: 30px; !* Adjust depending on the size of your button *!*/
@@ -4646,24 +4657,36 @@ img.u-pull-left {
     position: absolute;
     top: 5px;
     right: 5px;
-    background: none;
-    border: none;
+    background: var(--color-gray-10);
+    outline: 1px solid var(--color-gray-7);
+    border: 0;
     cursor: pointer;
-    color: var(--color-gray-19);
+    color: var(--color-gray-7);
     font-size: 14px;
     border-radius: 6px;
     opacity: 0.7;
     transition: opacity 0.3s;
-    outline: none;
     padding: 0;
     width: 30px;
     height: 30px;
     text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.copy-btn.copied {
+    outline-color: var(--color-copied);
+    border-color: var(--color-copied);
+    color: var(--color-copied);
+}
+
+.copy-btn.copied .fas {
+    animation: scaleUp 0.3s forwards;
 }
 
 
 .copy-btn:hover, .copy-btn:focus {
     opacity: 1;
-    background: var(--color-white);
 }
 
