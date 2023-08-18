@@ -1384,7 +1384,7 @@ a:active {
 
 /* headings
  */
-h1, h2, h3, h4, h5, h6, 
+h1, h2, h3, h4, h5, h6,
 .h1, .h2, .h3, .h4, .h5, .h6 {
     font-family            : var(--font-2);
     font-weight            : 400;
@@ -4389,6 +4389,19 @@ img.u-pull-left {
 	margin-bottom: var(--vspace-0_25);
 }
 
+/* related post
+ */
+.related-posts {
+	margin-top: var(--vspace-1_5);
+}
+
+.related-posts h4 {
+	font-family  : var(--font-1);
+	font-size    : var(--text-md);
+	margin-bottom: var(--vspace-1_25);
+    color        : var(--color-1);
+}
+
 /* -------------------------------------------------------------------
  * responsive:
  * blog styles
@@ -4680,10 +4693,15 @@ img.u-pull-left {
 
 .entry__meta .cat-links a::after {
 	content: ", ";
+    color: rgba(255, 255, 255, 0.7);
 }
 
 .entry__meta .cat-links a:last-child::after {
 	display: none;
+}
+
+.entry__meta .cat-links a:hover {
+    color: var(--color-1);
 }
 
 .entry__meta>[class*=entry__meta] {
