@@ -25,6 +25,7 @@
 <link href="https://pandabb3356.github.io/theme/images/favicons/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="https://pandabb3356.github.io/theme/images/favicons/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
 <link href="https://pandabb3356.github.io/theme/site.webmanifest" rel="manifest"/>
+<link href="https://pandabb3356.github.io/theme/css/stork-dark.css" media="screen and (prefers-color-scheme: dark)" rel="stylesheet"/>
 <!-- Open Graph -->
 <meta content="article" property="og:type"/>
 <meta content="KH" property="og:site_name"/>
@@ -99,6 +100,26 @@
 </ul>
 </nav>
 </div>
+<div class="s-header__search">
+<div class="s-header__search-inner">
+<div class="row wide">
+<form action="#" class="s-header__search-form" method="get" role="search">
+<label>
+<span class="h-screen-reader-text">Search for:</span>
+<input autocomplete="off" class="s-header__search-field" data-stork="sitesearch" name="s" placeholder="Search for..." title="Search for:" type="search" value=""/>
+</label>
+<input class="s-header__search-submit" type="submit" value="Search"/>
+</form>
+<a class="s-header__overlay-close" href="#0" title="Close Search">Close</a>
+</div> <!-- end row -->
+<div data-stork="sitesearch-output"></div>
+</div> <!-- s-header__search-inner -->
+</div> <!-- end s-header__search wrap -->
+<a class="s-header__search-trigger" href="#">
+<svg viewbox="0 0 17.982 17.983" xmlns="http://www.w3.org/2000/svg">
+<path d="M12.622 13.611l-.209.163A7.607 7.607 0 017.7 15.399C3.454 15.399 0 11.945 0 7.7 0 3.454 3.454 0 7.7 0c4.245 0 7.699 3.454 7.699 7.7a7.613 7.613 0 01-1.626 4.714l-.163.209 4.372 4.371-.989.989-4.371-4.372zM7.7 1.399a6.307 6.307 0 00-6.3 6.3A6.307 6.307 0 007.7 14c3.473 0 6.3-2.827 6.3-6.3a6.308 6.308 0 00-6.3-6.301z" fill="#010101"></path>
+</svg>
+</a>
 </header> <!-- end s-header -->
 <main class="s-content">
 <!-- # site main content
@@ -309,9 +330,12 @@ mprof plot
 <!-- Java Script
 ================================================== -->
 <script src="https://pandabb3356.github.io/theme/js/plugins.js"></script>
-<script src="https://pandabb3356.github.io/theme/js/main.js"></script>
 <script src="https://pandabb3356.github.io/theme/js/clipboard.min.js"></script>
-<script src="https://pandabb3356.github.io/theme/js/custom.js"></script>
+<script src="https://pandabb3356.github.io/theme/js/stork.min.js"></script>
+<script src="https://pandabb3356.github.io/theme/js/main.js"></script>
+<script>
+    stork.register("sitesearch", "https://pandabb3356.github.io/search-index.st");
+</script>
 <!-- Google tag (gtag.js) -->
 <script async="" src="https://www.googletagmanager.com/gtag/js?id=G-M3C36GR88F"></script>
 <script>

@@ -1,0 +1,48 @@
+[input]
+html_selector = "main"
+base_directory = "/Users/kenhuang/personal/mywebite/output"
+
+[[input.files]]
+path = "golang-comprehensive-dive-into-go-jet.html"
+url = "/golang-comprehensive-dive-into-go-jet.html"
+title = "A Comprehensive Dive into `go-jet`"
+
+[[input.files]]
+path = "pelican-static-site-generation-python.html"
+url = "/pelican-static-site-generation-python.html"
+title = "Pelican: Static Site Generation in Python"
+
+[[input.files]]
+path = "gensim-topic-modelling-python.html"
+url = "/gensim-topic-modelling-python.html"
+title = "Gensim - Topic Modelling in Python"
+
+[[input.files]]
+path = "golang-gin-pprof-integration.html"
+url = "/golang-gin-pprof-integration.html"
+title = "Integrating pprof with Gin"
+
+[[input.files]]
+path = "designing-notification-service-python.html"
+url = "/designing-notification-service-python.html"
+title = "Designing a Notification Service using Python"
+
+[[input.files]]
+path = "python-profiling-for-performance.html"
+url = "/python-profiling-for-performance.html"
+title = "Unleashing Python's Hidden Power: Profiling for Performance Optimization"
+
+[[input.files]]
+path = "golang-adapter-pattern.html"
+url = "/golang-adapter-pattern.html"
+title = "Mastering the Adapter Design Pattern in Go"
+
+[[input.files]]
+path = "golang-option-struct-pattern.html"
+url = "/golang-option-struct-pattern.html"
+title = "Exploring the Option Struct Pattern in Go"
+
+[[input.files]]
+path = "golang-singleton-pattern.html"
+url = "/golang-singleton-pattern.html"
+title = "Implementing the Singleton Design Pattern in Go"

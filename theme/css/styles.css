@@ -1329,7 +1329,18 @@ textarea {
     float : right;
 }
 
-
+.h-screen-reader-text {
+    clip: rect(1px, 1px, 1px, 1px);
+    -webkit-clip-path: inset(50%);
+    clip-path: inset(50%);
+    height: 1px;
+    width: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    border: 0;
+    position: absolute;
+}
 
 /* ===================================================================
  * # TYPOGRAPHY 
@@ -3027,6 +3038,212 @@ img.u-pull-left {
     border-bottom    : 1px solid var(--color-border);
 }
 
+/* -------------------------------------------------------------------
+ * ## header-search
+ * ------------------------------------------------------------------- */
+.s-header__search {
+    z-index: 300;
+    display: block;
+    background: rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    -webkit-transition: all .3s .5s;
+    transition: all .3s .5s;
+}
+
+.s-header__search .s-header__overlay-close {
+    margin-top: -23px;
+    top: 50%;
+    right: 4rem;
+    left: auto;
+}
+
+.s-header__search-inner {
+    background-color: black;
+    height: var(--header-height);
+    width: 100%;
+    -webkit-transform: translateY(-200%);
+    transform: translateY(-200%);
+    -webkit-transition: -webkit-transform 0.5s 0.3s cubic-bezier(0, 0.55, 0.45, 1);
+    transition: -webkit-transform 0.5s 0.3s cubic-bezier(0, 0.55, 0.45, 1);
+    transition: transform 0.5s 0.3s cubic-bezier(0, 0.55, 0.45, 1);
+    transition: transform 0.5s 0.3s cubic-bezier(0, 0.55, 0.45, 1), -webkit-transform 0.5s 0.3s cubic-bezier(0, 0.55, 0.45, 1);
+    -webkit-box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.s-header__search-inner .stork-close-button {
+    display: none;
+}
+
+.s-header__search-form {
+    width: 100%;
+    /*padding: 0 var(--gutter-lg);*/
+    margin: 0;
+}
+
+.s-header__search-form label {
+    margin: 0;
+}
+
+.s-header__search-form input[type="search"] {
+    --input-height: var(--header-height);
+    background-color: transparent;
+    color: white;
+    height: auto;
+    width: 100%;
+    font-family: var(--font-1);
+    font-weight: 400;
+    font-size: var(--text-md);
+    line-height: 1;
+    border: transparent;
+    margin: 0;
+}
+
+.s-header__search-form input[type="search"]::-webkit-search-decoration,
+.s-header__search-form input[type="search"]::-webkit-search-cancel-button,
+.s-header__search-form input[type="search"]::-webkit-search-results-button,
+.s-header__search-form input[type="search"]::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+}
+
+.s-header__search-form input[type="search"]::-webkit-input-placeholder {
+    color: white;
+    opacity: 1;
+}
+
+.s-header__search-form input[type="search"]:-moz-placeholder {
+    color: white;
+    opacity: 1;
+}
+
+.s-header__search-form input[type="search"]::-moz-placeholder {
+    color: white;
+    opacity: 1;
+}
+
+.s-header__search-form input[type="search"]:-ms-input-placeholder {
+    color: white;
+    opacity: 1;
+}
+
+.s-header__search-form input[type="search"].placeholder {
+    color: white;
+    opacity: 1;
+}
+
+.s-header__search-form input[type="search"]:focus {
+    outline: none;
+    color: white;
+}
+
+.s-header__search-form input[type="submit"] {
+    display: none;
+}
+
+body.search-is-visible {
+    overflow: hidden;
+}
+
+.search-is-visible .s-header__search {
+    -webkit-transition: all .3s;
+    transition: all .3s;
+    opacity: 1;
+    visibility: visible;
+}
+
+.search-is-visible .s-header__search-inner {
+    -webkit-transform: none;
+    transform: none;
+}
+
+/* -------------------------------------------------------------------
+ * ## search triggers
+ * ------------------------------------------------------------------- */
+.s-header__search-trigger {
+    width: 4rem;
+    height: 4rem;
+    display: -ms-flexbox;
+    display: -webkit-box;
+    display: flex;
+    -ms-flex-align: center;
+    -webkit-box-align: center;
+    align-items: center;
+    -ms-flex-pack: center;
+    -webkit-box-pack: center;
+    justify-content: center;
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+    position: absolute;
+    top: 50%;
+    right: 6rem;
+}
+
+.s-header__search-trigger svg {
+    height: 2.4rem;
+    width: 2.4rem;
+}
+
+.s-header__search-trigger svg path {
+    fill: white;
+}
+
+/* -------------------------------------------------------------------
+ * ## close button for search & mobile nav
+ * ------------------------------------------------------------------- */
+.s-header__overlay-close {
+    font: 0/0 a;
+    text-shadow: none;
+    color: transparent;
+    display: block;
+    width: 50px;
+    height: 50px;
+    margin-left: -25px;
+    -webkit-transform: scale(0.85);
+    transform: scale(0.85);
+    position: absolute;
+    top: var(--vspace-1);
+    left: 50%;
+}
+
+.s-header__overlay-close:hover {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+}
+
+.s-header__overlay-close::before,
+.s-header__overlay-close::after {
+    content: '';
+    display: inline-block;
+    width: 2px;
+    height: 24px;
+    top: 13px;
+    left: 24px;
+    background-color: white;
+    position: absolute;
+}
+
+.s-header__overlay-close::before {
+    -webkit-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+
+.s-header__overlay-close::after {
+    -webkit-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+}
+
+
 /* --------------------------------------------------------------------
  * ## main navigation
  * -------------------------------------------------------------------- */
@@ -3184,9 +3401,24 @@ img.u-pull-left {
     }
 }
 
+@media screen and (max-width: 900px) {
+    .s-header__search-trigger {
+        right: 2rem;
+    }
+}
+
 @media screen and (max-width: 800px) {
     .s-header {
         height : var(--header-height);
+    }
+
+    .s-header__search-trigger {
+        top: calc(var(--header-height) / 2);
+        right: calc(2.8rem + 3rem);
+    }
+    .s-header__search-trigger svg {
+        height: 2.5rem;
+        width: 2.5rem;
     }
 
     .header-mobile {
