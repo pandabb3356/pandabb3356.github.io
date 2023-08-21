@@ -443,50 +443,56 @@
     /* Search
     * ------------------------------------------------------ */
     const ssSearch = function () {
+        const bindSearch = () => {
+            const searchWrap = document.querySelector('.s-header__search');
+            const searchTrigger = document.querySelector('.s-header__search-trigger');
 
-        const searchWrap = document.querySelector('.s-header__search');
-        const searchTrigger = document.querySelector('.s-header__search-trigger');
+            if (!(searchWrap && searchTrigger)) return;
 
-        if (!(searchWrap && searchTrigger)) return;
+            const searchField = searchWrap.querySelector('.s-header__search-field');
+            const closeSearch = searchWrap.querySelector('.s-header__overlay-close');
+            const siteBody = document.querySelector('body');
 
-        const searchField = searchWrap.querySelector('.s-header__search-field');
-        const closeSearch = searchWrap.querySelector('.s-header__overlay-close');
-        const siteBody = document.querySelector('body');
+            // if (closeSearch.style.display === "none") {
+            //     closeSearch.style.display = "";
+            // }
 
-        searchTrigger.addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
+            searchTrigger.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
 
-            siteBody.classList.add('search-is-visible');
-            setTimeout(function () {
-                searchWrap.querySelector('.s-header__search-field').focus();
-            }, 100);
-        });
-
-        closeSearch.addEventListener('click', function (e) {
-            e.stopPropagation();
-
-            if (siteBody.classList.contains('search-is-visible')) {
-                siteBody.classList.remove('search-is-visible');
+                siteBody.classList.add('search-is-visible');
                 setTimeout(function () {
-                    searchWrap.querySelector('.s-header__search-field').blur();
+                    searchWrap.querySelector('.s-header__search-field').focus();
                 }, 100);
-            }
-        });
+            });
 
-        searchWrap.addEventListener('click', function (e) {
-            if (!(e.target.matches('.s-header__search-inner')) && !(e.target.matches('.stork-message'))) {
-                closeSearch.dispatchEvent(new Event('click'));
-            }
-        });
+            closeSearch.addEventListener('click', function (e) {
+                e.stopPropagation();
 
-        searchField.addEventListener('click', function (e) {
-            e.stopPropagation();
-        })
+                if (siteBody.classList.contains('search-is-visible')) {
+                    siteBody.classList.remove('search-is-visible');
+                    setTimeout(function () {
+                        searchWrap.querySelector('.s-header__search-field').blur();
+                    }, 100);
+                }
+            });
 
-        searchField.setAttribute('placeholder', 'Search for...');
-        searchField.setAttribute('autocomplete', 'off');
+            searchWrap.addEventListener('click', function (e) {
+                if (!(e.target.matches('.s-header__search-inner')) && !(e.target.matches('.stork-message'))) {
+                    closeSearch.dispatchEvent(new Event('click'));
+                }
+            });
 
+            searchField.addEventListener('click', function (e) {
+                e.stopPropagation();
+            })
+
+            searchField.setAttribute('placeholder', 'Search for...');
+            searchField.setAttribute('autocomplete', 'off');
+        }
+
+        bindSearch()
     }; // end ssSearch
 
 
@@ -496,6 +502,7 @@
 
         ssPreloader();
         ssMobileMenu();
+        ssSearch();
         ssScrollSpy();
         ssViewAnimate();
         ssSwiper();
@@ -503,7 +510,6 @@
         ssAlertBoxes();
         ssMoveTo();
         ssClipboard();
-        ssSearch();
 
     })();
 

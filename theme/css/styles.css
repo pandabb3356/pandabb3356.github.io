@@ -3080,6 +3080,7 @@ img.u-pull-left {
     position: absolute;
     top: 0;
     left: 0;
+    display: none;
 }
 
 .s-header__search-inner .stork-close-button {
@@ -3165,6 +3166,7 @@ body.search-is-visible {
 .search-is-visible .s-header__search-inner {
     -webkit-transform: none;
     transform: none;
+    display: unset;
 }
 
 /* -------------------------------------------------------------------
@@ -3242,6 +3244,7 @@ body.search-is-visible {
     -webkit-transform: rotate(-45deg);
     transform: rotate(-45deg);
 }
+
 
 
 /* --------------------------------------------------------------------
