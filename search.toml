@@ -3,6 +3,11 @@ html_selector = "main"
 base_directory = "/Users/kenhuang/personal/mywebite/output"
 
 [[input.files]]
+path = "python-metaprogramming-decorators.html"
+url = "/python-metaprogramming-decorators.html"
+title = "Python Metaprogramming and Decorators: Enhancing Code Dynamics"
+
+[[input.files]]
 path = "golang-observer-pattern-with-goroutines.html"
 url = "/golang-observer-pattern-with-goroutines.html"
 title = "Observer Pattern with Goroutines: Building Signal-Like Mechanisms in Go"

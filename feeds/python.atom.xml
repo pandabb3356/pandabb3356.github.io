@@ -1,5 +1,105 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>KH - Python</title><link href="https://pandabb3356.github.io/" rel="alternate"></link><link href="https://pandabb3356.github.io/feeds/python.atom.xml" rel="self"></link><id>https://pandabb3356.github.io/</id><updated>2023-08-20T10:16:04+08:00</updated><entry><title>Pelican: Static Site Generation in Python</title><link href="https://pandabb3356.github.io/pelican-static-site-generation-python.html" rel="alternate"></link><published>2023-08-19T10:53:23+08:00</published><updated>2023-08-20T10:16:04+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2023-08-19:/pelican-static-site-generation-python.html</id><summary type="html">&lt;p&gt;An introduction to Pelican, a powerful static site generator built on Python, and its various features and applications.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Static site generators have gained significant popularity over the years due to their speed, security, and ease of deployment. Among them, Pelican stands out as a flexible and powerful option built on Python. In this article, we'll delve into the basics of Pelican and see why it's a top choice for many developers.&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>KH - Python</title><link href="https://pandabb3356.github.io/" rel="alternate"></link><link href="https://pandabb3356.github.io/feeds/python.atom.xml" rel="self"></link><id>https://pandabb3356.github.io/</id><updated>2023-08-22T22:02:17+08:00</updated><entry><title>Python Metaprogramming and Decorators: Enhancing Code Dynamics</title><link href="https://pandabb3356.github.io/python-metaprogramming-decorators.html" rel="alternate"></link><published>2023-08-22T21:58:50+08:00</published><updated>2023-08-22T22:02:17+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2023-08-22:/python-metaprogramming-decorators.html</id><summary type="html">&lt;p&gt;Dive into Python's metaprogramming realm with a spotlight on decorators. Understand their functioning, unveil practical implementations, and craft custom decorators to uplift code aesthetics and reliability.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Python, being a dynamic language, provides robust tools for metaprogramming – the art of writing code that manipulates itself. One such metaprogramming tool that stands out is the 'decorator'. They not only improve code readability but also introduce added functionalities seamlessly.&lt;/p&gt;
+&lt;h2&gt;A Glimpse into Metaprogramming&lt;/h2&gt;
+&lt;p&gt;Metaprogramming is the practice of writing programs that can modify, generate, or manipulate other programs (or themselves). In Python, this often translates to altering classes, functions, or modules at runtime.&lt;/p&gt;
+&lt;p&gt;Examples include:
+- Dynamic attribute addition to objects.
+- Modifying classes with class decorators.
+- Wrapping or modifying functions with decorators.&lt;/p&gt;
+&lt;h2&gt;Deciphering Decorators&lt;/h2&gt;
+&lt;p&gt;Decorators, in essence, are design patterns in Python, allowing you to add new functionalities to existing objects without altering their structure. They're often prefixed with &lt;code&gt;@&lt;/code&gt; and placed above functions or methods.&lt;/p&gt;
+&lt;h3&gt;A Basic Decorator:&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;simple_decorator&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;func&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;wrapper&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+        &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Before the function call&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;func&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+        &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;After the function call&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;wrapper&lt;/span&gt;
+
+&lt;span class="nd"&gt;@simple_decorator&lt;/span&gt;
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;say_hello&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Hello!&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;say_hello&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Executing &lt;code&gt;say_hello()&lt;/code&gt; would print:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;Before the function call
+Hello!
+After the function call
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;code&gt;@simple_decorator&lt;/code&gt; is a syntactic sugar for: &lt;code&gt;say_hello = simple_decorator(say_hello)&lt;/code&gt;.&lt;/p&gt;
+&lt;h3&gt;Practical Applications of Decorators&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Logging&lt;/strong&gt;: Track metadata about function execution times, arguments, or results.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Authorization&lt;/strong&gt;: Check if someone's authorized to use an API endpoint, a method, etc.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Enrichment&lt;/strong&gt;: Modify the results or inputs of functions, e.g., changing the datatype, adding default values, or computing additional data.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Memoization&lt;/strong&gt;: Store results of expensive function calls and return the cached result when the same inputs occur again.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;Crafting Custom Decorators&lt;/h3&gt;
+&lt;p&gt;To elevate code legibility and upkeep:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;With Arguments&lt;/strong&gt;:&lt;/p&gt;
+&lt;p&gt;Decorators can also accept arguments, allowing you to further customize behavior. For instance, a decorator to repeat the execution of a function &lt;code&gt;n&lt;/code&gt; times:&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;repeat&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;n&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;decorator&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;func&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;wrapper&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;kwargs&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+            &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;_&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;n&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+                &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;func&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;kwargs&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;result&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;wrapper&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;decorator&lt;/span&gt;
+
+&lt;span class="nd"&gt;@repeat&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;n&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;greet&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;f&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Hello, &lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;!&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;greet&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Alice&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This prints "Hello, Alice!" thrice.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Class Decorators&lt;/strong&gt;:&lt;/p&gt;
+&lt;p&gt;For enhancing or modifying classes:&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;readonly_properties&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;attrs&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;class_decorator&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;cls&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;attr&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;attrs&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+            &lt;span class="n"&gt;prop&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;property&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;cls&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="vm"&gt;__dict__&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;attr&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+            &lt;span class="nb"&gt;setattr&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;cls&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;attr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;prop&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="bp"&gt;cls&lt;/span&gt;
+
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;class_decorator&lt;/span&gt;
+
+&lt;span class="nd"&gt;@readonly_properties&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;name&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Person&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="fm"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;_name&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;name&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;name&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;_name&lt;/span&gt;
+
+&lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Person&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;John&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="c1"&gt;# p.name = &amp;quot;Doe&amp;quot;  # This will raise an error&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;code&gt;readonly_properties&lt;/code&gt; decorator makes class properties read-only, preventing unintended changes.&lt;/p&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;Decorators are Python's gems, allowing for code augmentation without direct modifications. They embody the essence of metaprogramming, offering the ability to enhance, control, and extend functionalities. By integrating decorators into your toolkit, you empower your codebase, ensuring it remains DRY (Don't Repeat Yourself), readable, and maintainable.&lt;/p&gt;</content><category term="Python"></category><category term="python"></category><category term="decorators"></category></entry><entry><title>Pelican: Static Site Generation in Python</title><link href="https://pandabb3356.github.io/pelican-static-site-generation-python.html" rel="alternate"></link><published>2023-08-19T10:53:23+08:00</published><updated>2023-08-20T10:16:04+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2023-08-19:/pelican-static-site-generation-python.html</id><summary type="html">&lt;p&gt;An introduction to Pelican, a powerful static site generator built on Python, and its various features and applications.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Static site generators have gained significant popularity over the years due to their speed, security, and ease of deployment. Among them, Pelican stands out as a flexible and powerful option built on Python. In this article, we'll delve into the basics of Pelican and see why it's a top choice for many developers.&lt;/p&gt;
 &lt;h2&gt;What is Pelican?&lt;/h2&gt;
 &lt;p&gt;Pelican is an open-source static site generator that uses Python. It takes your content, typically written in Markdown or reStructuredText, and produces static HTML files that can be served by any web server.&lt;/p&gt;
 &lt;h2&gt;Why Choose Pelican?&lt;/h2&gt;
