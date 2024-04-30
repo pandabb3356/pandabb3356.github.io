@@ -1,6 +1,6 @@
 [input]
 html_selector = "main"
-base_directory = "/Users/kenhuang/personal/mywebite/output"
+base_directory = "/home/runner/work/mywebite/mywebite/output"
 
 [[input.files]]
 path = "python-metaprogramming-decorators.html"
