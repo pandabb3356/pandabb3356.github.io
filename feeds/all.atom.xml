@@ -1,5 +1,185 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>KH</title><link href="https://pandabb3356.github.io/" rel="alternate"/><link href="https://pandabb3356.github.io/feeds/all.atom.xml" rel="self"/><id>https://pandabb3356.github.io/</id><updated>2025-12-21T11:48:14+08:00</updated><entry><title>Django DRF-Spectacular: Documenting Custom Envelope Responses</title><link href="https://pandabb3356.github.io/django-drf-spectacular-custom-envelope-responses.html" rel="alternate"/><published>2025-12-21T11:48:14+08:00</published><updated>2025-12-21T04:55:07.878425+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2025-12-21:/django-drf-spectacular-custom-envelope-responses.html</id><summary type="html">&lt;p&gt;Learn why drf-spectacular misdocuments custom response envelopes in DRF and how to fix it with explicit or typed envelope serializers.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Many teams using Django REST Framework (DRF) adopt a &lt;strong&gt;custom response envelope&lt;/strong&gt; to keep API responses consistent across services. A common pattern looks like this:&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>KH</title><link href="https://pandabb3356.github.io/" rel="alternate"/><link href="https://pandabb3356.github.io/feeds/all.atom.xml" rel="self"/><id>https://pandabb3356.github.io/</id><updated>2025-12-21T14:00:04+08:00</updated><entry><title>Django DRF-Spectacular Envelope Responses: Advanced Patterns and Trade-offs</title><link href="https://pandabb3356.github.io/django-drf-spectacular-envelope-responses-advanced.html" rel="alternate"/><published>2025-12-21T14:00:04+08:00</published><updated>2025-12-21T06:57:30.688343+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2025-12-21:/django-drf-spectacular-envelope-responses-advanced.html</id><summary type="html">&lt;p&gt;Explore advanced envelope response patterns in DRF and drf-spectacular, focusing on schema accuracy, error modeling, and pagination trade-offs.&lt;/p&gt;</summary><content type="html">&lt;blockquote&gt;
+&lt;p&gt;This article is a continuation of &lt;strong&gt;“Django DRF-Spectacular: Documenting Custom Envelope Responses”&lt;/strong&gt;. If you have not read the previous piece, start there for the fundamentals.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Once you understand &lt;em&gt;how&lt;/em&gt; to document envelope responses, the next challenge is deciding &lt;strong&gt;how far to push the abstraction&lt;/strong&gt;. In larger systems, naive envelope patterns often collide with schema accuracy, long-term maintainability, and developer ergonomics.&lt;/p&gt;
+&lt;p&gt;This article explores &lt;strong&gt;advanced patterns, edge cases, and trade-offs&lt;/strong&gt; when using drf-spectacular with custom envelope responses.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2&gt;What Is Actually “Advanced” Here?&lt;/h2&gt;
+&lt;p&gt;This article is &lt;em&gt;not&lt;/em&gt; advanced because of complex code. It is advanced because it focuses on &lt;strong&gt;system-level consequences&lt;/strong&gt; rather than mechanics.&lt;/p&gt;
+&lt;p&gt;Specifically, the advanced aspects are:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Schema truth vs runtime convenience&lt;/strong&gt; — analyzing how global envelopes distort OpenAPI contracts&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Error modeling as a separate domain&lt;/strong&gt; — rejecting the idea that success and error responses should share the same shape&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Pagination as a first-class schema concern&lt;/strong&gt; — preserving list semantics instead of flattening them into &lt;code&gt;data: []&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Explicit rejection of generics&lt;/strong&gt; — explaining why Python typing abstractions fail under DRF schema introspection&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Decision-oriented guidance&lt;/strong&gt; — a matrix that helps teams choose patterns based on API context, not preference&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;If you are only looking for &lt;em&gt;"how to make drf-spectacular show my envelope"&lt;/em&gt;, the previous article is enough.&lt;/p&gt;
+&lt;p&gt;This piece is about &lt;strong&gt;why certain envelope designs stop scaling&lt;/strong&gt;—organizationally and technically.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2&gt;The Hidden Cost of a Global Envelope&lt;/h2&gt;
+&lt;p&gt;A common approach is to enforce a response envelope globally by overriding &lt;code&gt;APIView.finalize_response&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;EnvelopeMixin&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;finalize_response&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;request&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;kwargs&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="s2"&gt;&amp;quot;success&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;status_code&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="mi"&gt;400&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="s2"&gt;&amp;quot;data&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nb"&gt;super&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;finalize_response&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;request&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;kwargs&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;While this guarantees runtime consistency, it creates a &lt;strong&gt;schema visibility gap&lt;/strong&gt;:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;drf-spectacular never sees the final response shape&lt;/li&gt;
+&lt;li&gt;status-specific responses (400 / 401 / 404) become ambiguous&lt;/li&gt;
+&lt;li&gt;pagination and list responses lose type information&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;At scale, this pattern forces developers to manually patch schemas everywhere, negating the benefits of automation.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Rule of thumb:&lt;/strong&gt; global envelopes optimize runtime symmetry at the expense of documentation truth.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2&gt;Pattern 1: Schema-First Envelope Design&lt;/h2&gt;
+&lt;p&gt;Instead of wrapping responses at runtime, define the envelope &lt;strong&gt;at the schema layer first&lt;/strong&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;rest_framework&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;serializers&lt;/span&gt;
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Envelope&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;serializers&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Serializer&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;success&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;serializers&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;BooleanField&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="n"&gt;message&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;serializers&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;CharField&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;required&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;serializers&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;SerializerMethodField&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Then bind the envelope explicitly per endpoint using typed serializers.&lt;/p&gt;
+&lt;p&gt;This approach treats OpenAPI as a &lt;strong&gt;contract&lt;/strong&gt;, not a side effect.&lt;/p&gt;
+&lt;h3&gt;Why this scales better&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Every response is intentional&lt;/li&gt;
+&lt;li&gt;Schema diffs become meaningful in code reviews&lt;/li&gt;
+&lt;li&gt;Frontend contracts remain stable&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2&gt;Pattern 2: Error Envelopes Are Not Success Envelopes&lt;/h2&gt;
+&lt;p&gt;One of the most common mistakes is reusing the same envelope for errors.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;success&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;false&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;data&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;detail&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Not found&amp;quot;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This hides critical semantics:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;HTTP status codes already convey failure&lt;/li&gt;
+&lt;li&gt;error payloads are structurally different&lt;/li&gt;
+&lt;li&gt;clients cannot reliably branch on &lt;code&gt;data&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;A better approach is &lt;strong&gt;separate schemas&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;ErrorEnvelope&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;serializers&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Serializer&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;success&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;serializers&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;BooleanField&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;default&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;error&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;serializers&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;DictField&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Then document them explicitly:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nd"&gt;@extend_schema&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;responses&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="mi"&gt;200&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;SuccessEnvelope&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="mi"&gt;404&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;ErrorEnvelope&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This preserves semantic clarity and accurate client generation.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2&gt;Pattern 3: Pagination and List Responses&lt;/h2&gt;
+&lt;p&gt;Pagination is where envelope abstractions often break.&lt;/p&gt;
+&lt;p&gt;A naive envelope loses the list shape:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;success&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;data&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;...&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Instead, treat pagination as a &lt;strong&gt;first-class data structure&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;PaginatedData&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;serializers&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Serializer&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;serializers&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;IntegerField&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="n"&gt;results&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ItemSerializer&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;many&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;PaginatedEnvelope&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;serializers&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Serializer&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;success&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;serializers&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;BooleanField&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;PaginatedData&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This preserves:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;list semantics&lt;/li&gt;
+&lt;li&gt;pagination metadata&lt;/li&gt;
+&lt;li&gt;OpenAPI client correctness&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2&gt;Pattern 4: Generics and Why Python Cannot Save You&lt;/h2&gt;
+&lt;p&gt;It is tempting to want a generic envelope:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="n"&gt;Envelope&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;T&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Python’s typing system does not survive runtime introspection in DRF serializers. drf-spectacular cannot resolve generics without explicit serializers.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Reality check:&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Generics help humans&lt;/li&gt;
+&lt;li&gt;Concrete serializers help schemas&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In practice, explicit duplication wins.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2&gt;Pattern 5: Inline Overrides as an Escape Hatch&lt;/h2&gt;
+&lt;p&gt;Inline schemas are acceptable when:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;the endpoint is unstable&lt;/li&gt;
+&lt;li&gt;the payload is trivial&lt;/li&gt;
+&lt;li&gt;the API is internal-only&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;But overuse creates invisible contracts.&lt;/p&gt;
+&lt;p&gt;If a schema matters, give it a name.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2&gt;Decision Matrix&lt;/h2&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Scenario&lt;/th&gt;
+&lt;th&gt;Recommended Pattern&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Public API&lt;/td&gt;
+&lt;td&gt;Typed envelope serializers&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Internal tools&lt;/td&gt;
+&lt;td&gt;Inline overrides&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Pagination&lt;/td&gt;
+&lt;td&gt;Dedicated paginated envelope&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Errors&lt;/td&gt;
+&lt;td&gt;Separate error envelope&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Global envelope&lt;/td&gt;
+&lt;td&gt;Avoid for schema accuracy&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;hr&gt;
+&lt;h2&gt;Final Takeaway&lt;/h2&gt;
+&lt;p&gt;Envelope responses are not a stylistic preference. They are a &lt;strong&gt;design commitment&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;The moment your API becomes a contract—consumed by frontend teams, client SDKs, or external users—envelope abstractions stop being a runtime convenience and start demanding &lt;strong&gt;explicit schema ownership&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;If you choose to centralize response behavior, you must pay for it in documentation clarity. If you are unwilling to model success, error, and pagination as distinct schema concerns, a global envelope will eventually work against you.&lt;/p&gt;
+&lt;p&gt;The real lesson is simple:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Envelope design is no longer a technical choice once your API has consumers.&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Treat OpenAPI as a first-class design surface, not a side effect of implementation, and your envelope patterns will scale—for both systems and teams.&lt;/p&gt;</content><category term="Python"/><category term="python"/><category term="django"/><category term="drf"/><category term="drf-spectacular"/><category term="openapi"/><category term="api"/><category term="documentation"/><category term="schema"/></entry><entry><title>Django DRF-Spectacular: Documenting Custom Envelope Responses</title><link href="https://pandabb3356.github.io/django-drf-spectacular-custom-envelope-responses.html" rel="alternate"/><published>2025-12-21T11:48:14+08:00</published><updated>2025-12-21T06:57:30.688343+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2025-12-21:/django-drf-spectacular-custom-envelope-responses.html</id><summary type="html">&lt;p&gt;Learn why drf-spectacular misdocuments custom response envelopes in DRF and how to fix it with explicit or typed envelope serializers.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Many teams using Django REST Framework (DRF) adopt a &lt;strong&gt;custom response envelope&lt;/strong&gt; to keep API responses consistent across services. A common pattern looks like this:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="p"&gt;{&lt;/span&gt;
 &lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;success&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
 &lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;message&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;OK&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
@@ -104,7 +284,7 @@
 &lt;hr&gt;
 &lt;h2&gt;Final Thoughts&lt;/h2&gt;
 &lt;p&gt;drf-spectacular is powerful, but it cannot guess response shapes that serializers do not describe. Once you accept that limitation, documenting custom envelope responses becomes straightforward and predictable.&lt;/p&gt;
-&lt;p&gt;Clear schemas lead to happier frontend developers, fewer integration bugs, and APIs that scale gracefully.&lt;/p&gt;</content><category term="Python"/><category term="python"/><category term="django"/><category term="drf"/><category term="drf-spectacular"/><category term="openapi"/><category term="api"/><category term="documentation"/></entry><entry><title>Python Metaprogramming and Decorators: Enhancing Code Dynamics</title><link href="https://pandabb3356.github.io/python-metaprogramming-decorators.html" rel="alternate"/><published>2023-08-22T21:58:50+08:00</published><updated>2025-12-21T04:55:07.878425+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2023-08-22:/python-metaprogramming-decorators.html</id><summary type="html">&lt;p&gt;Dive into Python's metaprogramming realm with a spotlight on decorators. Understand their functioning, unveil practical implementations, and craft custom decorators to uplift code aesthetics and reliability.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Python, being a dynamic language, provides robust tools for metaprogramming – the art of writing code that manipulates itself. One such metaprogramming tool that stands out is the 'decorator'. They not only improve code readability but also introduce added functionalities seamlessly.&lt;/p&gt;
+&lt;p&gt;Clear schemas lead to happier frontend developers, fewer integration bugs, and APIs that scale gracefully.&lt;/p&gt;</content><category term="Python"/><category term="python"/><category term="django"/><category term="drf"/><category term="drf-spectacular"/><category term="openapi"/><category term="api"/><category term="documentation"/></entry><entry><title>Python Metaprogramming and Decorators: Enhancing Code Dynamics</title><link href="https://pandabb3356.github.io/python-metaprogramming-decorators.html" rel="alternate"/><published>2023-08-22T21:58:50+08:00</published><updated>2025-12-21T06:57:30.688343+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2023-08-22:/python-metaprogramming-decorators.html</id><summary type="html">&lt;p&gt;Dive into Python's metaprogramming realm with a spotlight on decorators. Understand their functioning, unveil practical implementations, and craft custom decorators to uplift code aesthetics and reliability.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Python, being a dynamic language, provides robust tools for metaprogramming – the art of writing code that manipulates itself. One such metaprogramming tool that stands out is the 'decorator'. They not only improve code readability but also introduce added functionalities seamlessly.&lt;/p&gt;
 &lt;h2&gt;A Glimpse into Metaprogramming&lt;/h2&gt;
 &lt;p&gt;Metaprogramming is the practice of writing programs that can modify, generate, or manipulate other programs (or themselves). In Python, this often translates to altering classes, functions, or modules at runtime.&lt;/p&gt;
 &lt;p&gt;Examples include:
@@ -204,7 +384,7 @@ After the function call
 
 &lt;p&gt;The &lt;code&gt;readonly_properties&lt;/code&gt; decorator makes class properties read-only, preventing unintended changes.&lt;/p&gt;
 &lt;h2&gt;Conclusion&lt;/h2&gt;
-&lt;p&gt;Decorators are Python's gems, allowing for code augmentation without direct modifications. They embody the essence of metaprogramming, offering the ability to enhance, control, and extend functionalities. By integrating decorators into your toolkit, you empower your codebase, ensuring it remains DRY (Don't Repeat Yourself), readable, and maintainable.&lt;/p&gt;</content><category term="Python"/><category term="python"/><category term="decorators"/></entry><entry><title>Observer Pattern with Goroutines: Building Signal-Like Mechanisms in Go</title><link href="https://pandabb3356.github.io/golang-observer-pattern-with-goroutines.html" rel="alternate"/><published>2023-08-21T18:35:07+08:00</published><updated>2025-12-21T04:55:07.877425+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2023-08-21:/golang-observer-pattern-with-goroutines.html</id><summary type="html">&lt;p&gt;Dive into Go's powerful concurrency features to implement the observer pattern, replicating signal-like mechanisms for event-driven programming.&lt;/p&gt;</summary><content type="html">&lt;h1&gt;Using Goroutines to Craft an Observer Pattern resembling Signals&lt;/h1&gt;
+&lt;p&gt;Decorators are Python's gems, allowing for code augmentation without direct modifications. They embody the essence of metaprogramming, offering the ability to enhance, control, and extend functionalities. By integrating decorators into your toolkit, you empower your codebase, ensuring it remains DRY (Don't Repeat Yourself), readable, and maintainable.&lt;/p&gt;</content><category term="Python"/><category term="python"/><category term="decorators"/></entry><entry><title>Observer Pattern with Goroutines: Building Signal-Like Mechanisms in Go</title><link href="https://pandabb3356.github.io/golang-observer-pattern-with-goroutines.html" rel="alternate"/><published>2023-08-21T18:35:07+08:00</published><updated>2025-12-21T06:57:30.688343+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2023-08-21:/golang-observer-pattern-with-goroutines.html</id><summary type="html">&lt;p&gt;Dive into Go's powerful concurrency features to implement the observer pattern, replicating signal-like mechanisms for event-driven programming.&lt;/p&gt;</summary><content type="html">&lt;h1&gt;Using Goroutines to Craft an Observer Pattern resembling Signals&lt;/h1&gt;
 &lt;p&gt;The observer pattern is a staple in event-driven programming, where an object (called the "subject") maintains a list of its dependents (observers) and notifies them of any state changes. In languages like Python, signals provide a mechanism for such decoupled components to communicate. But how can we harness Go's concurrency primitives, like goroutines, to achieve this? Let's delve into an innovative blend of the observer pattern with goroutines.&lt;/p&gt;
 &lt;h2&gt;Why Goroutines for Observer Pattern?&lt;/h2&gt;
 &lt;p&gt;Goroutines offer lightweight concurrent execution, making them perfect candidates to handle the dynamic addition or removal of observers and event broadcasting without stalling the main thread.&lt;/p&gt;
@@ -302,7 +482,7 @@ After the function call
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;h2&gt;Final Thoughts&lt;/h2&gt;
-&lt;p&gt;Goroutines, with their lightweight concurrency model, offer a refreshing approach to the observer pattern, closely mimicking signal mechanisms seen in other languages. By blending design patterns with concurrency primitives, Go showcases its versatility in building efficient, decoupled, and event-driven systems. As Go continues its ascent in the software world, such innovations cement its place as a language that caters to both traditional and modern programming paradigms.&lt;/p&gt;</content><category term="Golang"/><category term="Golang"/><category term="goroutines"/><category term="observer pattern"/><category term="signals"/><category term="concurrency"/><category term="design patterns"/></entry><entry><title>A Comprehensive Dive into `go-jet`</title><link href="https://pandabb3356.github.io/golang-comprehensive-dive-into-go-jet.html" rel="alternate"/><published>2023-08-21T14:19:14+08:00</published><updated>2025-12-21T04:55:07.877425+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2023-08-21:/golang-comprehensive-dive-into-go-jet.html</id><summary type="html">&lt;p&gt;An in-depth exploration of go-jet, the powerful SQL builder for Go, and its pivotal role in efficient database management.&lt;/p&gt;</summary><content type="html">&lt;p&gt;When it comes to working with databases in Go, several packages promise efficiency and flexibility. Yet, not many combine the raw prowess of SQL with Go's type-safe environment. Enter &lt;code&gt;go-jet&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Goroutines, with their lightweight concurrency model, offer a refreshing approach to the observer pattern, closely mimicking signal mechanisms seen in other languages. By blending design patterns with concurrency primitives, Go showcases its versatility in building efficient, decoupled, and event-driven systems. As Go continues its ascent in the software world, such innovations cement its place as a language that caters to both traditional and modern programming paradigms.&lt;/p&gt;</content><category term="Golang"/><category term="Golang"/><category term="goroutines"/><category term="observer pattern"/><category term="signals"/><category term="concurrency"/><category term="design patterns"/></entry><entry><title>A Comprehensive Dive into `go-jet`</title><link href="https://pandabb3356.github.io/golang-comprehensive-dive-into-go-jet.html" rel="alternate"/><published>2023-08-21T14:19:14+08:00</published><updated>2025-12-21T06:57:30.688343+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2023-08-21:/golang-comprehensive-dive-into-go-jet.html</id><summary type="html">&lt;p&gt;An in-depth exploration of go-jet, the powerful SQL builder for Go, and its pivotal role in efficient database management.&lt;/p&gt;</summary><content type="html">&lt;p&gt;When it comes to working with databases in Go, several packages promise efficiency and flexibility. Yet, not many combine the raw prowess of SQL with Go's type-safe environment. Enter &lt;code&gt;go-jet&lt;/code&gt;.&lt;/p&gt;
 &lt;h2&gt;What Sets &lt;code&gt;go-jet&lt;/code&gt; Apart?&lt;/h2&gt;
 &lt;p&gt;Most Go developers face a conundrum: The convenience of ORMs or the power of raw SQL? &lt;code&gt;go-jet&lt;/code&gt; doesn't make you choose. It integrates the best of both worlds:&lt;/p&gt;
 &lt;ol&gt;
@@ -376,7 +556,7 @@ After the function call
 &lt;h2&gt;Reference&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href="https://github.com/go-jet/jet"&gt;github.com/go-jet/jet&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;</content><category term="Golang"/><category term="golang"/><category term="go-jet"/><category term="databases"/><category term="SQL"/><category term="ORM"/></entry><entry><title>Pelican: Static Site Generation in Python</title><link href="https://pandabb3356.github.io/pelican-static-site-generation-python.html" rel="alternate"/><published>2023-08-19T10:53:23+08:00</published><updated>2025-12-21T04:55:07.878425+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2023-08-19:/pelican-static-site-generation-python.html</id><summary type="html">&lt;p&gt;An introduction to Pelican, a powerful static site generator built on Python, and its various features and applications.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Static site generators have gained significant popularity over the years due to their speed, security, and ease of deployment. Among them, Pelican stands out as a flexible and powerful option built on Python. In this article, we'll delve into the basics of Pelican and see why it's a top choice for many developers.&lt;/p&gt;
+&lt;/ul&gt;</content><category term="Golang"/><category term="golang"/><category term="go-jet"/><category term="databases"/><category term="SQL"/><category term="ORM"/></entry><entry><title>Pelican: Static Site Generation in Python</title><link href="https://pandabb3356.github.io/pelican-static-site-generation-python.html" rel="alternate"/><published>2023-08-19T10:53:23+08:00</published><updated>2025-12-21T06:57:30.688343+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2023-08-19:/pelican-static-site-generation-python.html</id><summary type="html">&lt;p&gt;An introduction to Pelican, a powerful static site generator built on Python, and its various features and applications.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Static site generators have gained significant popularity over the years due to their speed, security, and ease of deployment. Among them, Pelican stands out as a flexible and powerful option built on Python. In this article, we'll delve into the basics of Pelican and see why it's a top choice for many developers.&lt;/p&gt;
 &lt;h2&gt;What is Pelican?&lt;/h2&gt;
 &lt;p&gt;Pelican is an open-source static site generator that uses Python. It takes your content, typically written in Markdown or reStructuredText, and produces static HTML files that can be served by any web server.&lt;/p&gt;
 &lt;h2&gt;Why Choose Pelican?&lt;/h2&gt;
@@ -424,7 +604,7 @@ After the function call
 &lt;h2&gt;Extending Pelican&lt;/h2&gt;
 &lt;p&gt;Pelican has a rich ecosystem of plugins that can extend its functionality. Whether you want SEO optimizations, social sharing capabilities, or integration with external services, there's likely a plugin available for your needs.&lt;/p&gt;
 &lt;h2&gt;Conclusion&lt;/h2&gt;
-&lt;p&gt;Pelican brings the simplicity and robustness of Python to the world of static site generation. Whether you're a blogger, a company looking to set up a documentation site, or a developer wanting to showcase a portfolio, Pelican offers a powerful yet straightforward solution. As web development continues to evolve, the appeal of static site generators, especially those like Pelican, only grows stronger.&lt;/p&gt;</content><category term="Python"/><category term="pelican"/><category term="python"/><category term="static-site-generation"/></entry><entry><title>Gensim - Topic Modelling in Python</title><link href="https://pandabb3356.github.io/gensim-topic-modelling-python.html" rel="alternate"/><published>2023-08-19T10:47:10+08:00</published><updated>2025-12-21T04:55:07.878425+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2023-08-19:/gensim-topic-modelling-python.html</id><summary type="html">&lt;p&gt;Dive into topic modelling in Python using the Gensim library, and understand how it can help organize and understand large sets of textual data.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Gensim is a popular open-source library in Python for natural language processing and machine learning on textual data. One of its primary applications is for topic modelling, a method used to automatically identify topics present in a text corpus.&lt;/p&gt;
+&lt;p&gt;Pelican brings the simplicity and robustness of Python to the world of static site generation. Whether you're a blogger, a company looking to set up a documentation site, or a developer wanting to showcase a portfolio, Pelican offers a powerful yet straightforward solution. As web development continues to evolve, the appeal of static site generators, especially those like Pelican, only grows stronger.&lt;/p&gt;</content><category term="Python"/><category term="pelican"/><category term="python"/><category term="static-site-generation"/></entry><entry><title>Gensim - Topic Modelling in Python</title><link href="https://pandabb3356.github.io/gensim-topic-modelling-python.html" rel="alternate"/><published>2023-08-19T10:47:10+08:00</published><updated>2025-12-21T06:57:30.688343+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2023-08-19:/gensim-topic-modelling-python.html</id><summary type="html">&lt;p&gt;Dive into topic modelling in Python using the Gensim library, and understand how it can help organize and understand large sets of textual data.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Gensim is a popular open-source library in Python for natural language processing and machine learning on textual data. One of its primary applications is for topic modelling, a method used to automatically identify topics present in a text corpus.&lt;/p&gt;
 &lt;h2&gt;What is Topic Modelling?&lt;/h2&gt;
 &lt;p&gt;Topic modelling is a type of statistical model used for discovering abstract topics within a collection of documents. These models can help in summarizing large datasets of textual information by categorizing documents into topics.&lt;/p&gt;
 &lt;h2&gt;Setting Up Gensim&lt;/h2&gt;
@@ -473,7 +653,7 @@ After the function call
 &lt;li&gt;&lt;strong&gt;Integration&lt;/strong&gt;: Gensim can integrate well with other Python libraries like Scikit-learn, offering a richer ecosystem for text analytics.&lt;/li&gt;
 &lt;/ol&gt;
 &lt;h2&gt;Conclusion&lt;/h2&gt;
-&lt;p&gt;Topic modelling is an essential tool in the toolkit of anyone working with large text corpora, whether it's for data mining, content recommendation, or understanding themes within large sets of documents. Gensim provides a straightforward and efficient way to get started with topic modelling in Python, and its wide range of features ensures that you'll continue to find it useful as you tackle more complex problems.&lt;/p&gt;</content><category term="Python"/><category term="python"/><category term="gensim"/><category term="topic-modelling"/><category term="NLP"/></entry><entry><title>Integrating pprof with Gin</title><link href="https://pandabb3356.github.io/golang-gin-pprof-integration.html" rel="alternate"/><published>2023-08-18T21:43:46+08:00</published><updated>2025-12-21T04:55:07.877425+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2023-08-18:/golang-gin-pprof-integration.html</id><summary type="html">&lt;p&gt;A step-by-step guide on how to integrate Go's pprof with the Gin web framework using gin-contrib/pprof.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Profiling applications is crucial for understanding performance bottlenecks. In Go, the standard library offers the &lt;code&gt;pprof&lt;/code&gt; package for this purpose. This article covers how to integrate &lt;code&gt;pprof&lt;/code&gt; with the Gin web framework using the &lt;code&gt;gin-contrib/pprof&lt;/code&gt; package.&lt;/p&gt;
+&lt;p&gt;Topic modelling is an essential tool in the toolkit of anyone working with large text corpora, whether it's for data mining, content recommendation, or understanding themes within large sets of documents. Gensim provides a straightforward and efficient way to get started with topic modelling in Python, and its wide range of features ensures that you'll continue to find it useful as you tackle more complex problems.&lt;/p&gt;</content><category term="Python"/><category term="python"/><category term="gensim"/><category term="topic-modelling"/><category term="NLP"/></entry><entry><title>Integrating pprof with Gin</title><link href="https://pandabb3356.github.io/golang-gin-pprof-integration.html" rel="alternate"/><published>2023-08-18T21:43:46+08:00</published><updated>2025-12-21T06:57:30.688343+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2023-08-18:/golang-gin-pprof-integration.html</id><summary type="html">&lt;p&gt;A step-by-step guide on how to integrate Go's pprof with the Gin web framework using gin-contrib/pprof.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Profiling applications is crucial for understanding performance bottlenecks. In Go, the standard library offers the &lt;code&gt;pprof&lt;/code&gt; package for this purpose. This article covers how to integrate &lt;code&gt;pprof&lt;/code&gt; with the Gin web framework using the &lt;code&gt;gin-contrib/pprof&lt;/code&gt; package.&lt;/p&gt;
 &lt;h2&gt;Prerequisites&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;A Go development environment.&lt;/li&gt;
@@ -543,7 +723,7 @@ After the function call
 &lt;h2&gt;Reference&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href="https://github.com/gin-contrib/pprof"&gt;github.com/gin-contrib/pprof&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;</content><category term="Golang"/><category term="golang"/><category term="gin"/><category term="pprof"/></entry><entry><title>Designing a Notification Service using Python</title><link href="https://pandabb3356.github.io/designing-notification-service-python.html" rel="alternate"/><published>2023-08-17T08:00:00+08:00</published><updated>2025-12-21T04:55:07.877425+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2023-08-17:/designing-notification-service-python.html</id><summary type="html">&lt;p&gt;A guide on creating a Python-based notification service that integrates with multiple providers.&lt;/p&gt;</summary><content type="html">&lt;p&gt;In today's digital landscape, a flexible notification service that can send messages via different backend providers is invaluable. By leveraging platforms such as SendGrid for emails, Twilio for SMS, Telegram for messaging, and OneSignal for push notifications, businesses can reach users across a spectrum of communication channels.&lt;/p&gt;
+&lt;/ul&gt;</content><category term="Golang"/><category term="golang"/><category term="gin"/><category term="pprof"/></entry><entry><title>Designing a Notification Service using Python</title><link href="https://pandabb3356.github.io/designing-notification-service-python.html" rel="alternate"/><published>2023-08-17T08:00:00+08:00</published><updated>2025-12-21T06:57:30.688343+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2023-08-17:/designing-notification-service-python.html</id><summary type="html">&lt;p&gt;A guide on creating a Python-based notification service that integrates with multiple providers.&lt;/p&gt;</summary><content type="html">&lt;p&gt;In today's digital landscape, a flexible notification service that can send messages via different backend providers is invaluable. By leveraging platforms such as SendGrid for emails, Twilio for SMS, Telegram for messaging, and OneSignal for push notifications, businesses can reach users across a spectrum of communication channels.&lt;/p&gt;
 &lt;p&gt;This guide illustrates how to create a Python-based notification service that seamlessly integrates with multiple providers.&lt;/p&gt;
 &lt;h2&gt;Requirements:&lt;/h2&gt;
 &lt;ul&gt;
@@ -664,7 +844,7 @@ After the function call
 
 &lt;p&gt;This service will dispatch the given message via all bound providers for that user.&lt;/p&gt;
 &lt;h2&gt;Conclusion&lt;/h2&gt;
-&lt;p&gt;Creating a multi-provider notification service in Python is efficient and streamlined, thanks to Python's object-oriented features and robust third-party SDKs. With a modular design, this service can easily accommodate additional notification providers in the future.&lt;/p&gt;</content><category term="Python"/><category term="Notifications"/><category term="Design"/><category term="Python"/></entry><entry><title>Unleashing Python's Hidden Power: Profiling for Performance Optimization</title><link href="https://pandabb3356.github.io/python-profiling-for-performance.html" rel="alternate"/><published>2023-08-16T00:00:00+08:00</published><updated>2025-12-21T04:55:07.878425+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2023-08-16:/python-profiling-for-performance.html</id><summary type="html">&lt;p&gt;Profiling is a fundamental technique in software development that enables programmers to identify and rectify performance bottlenecks in their code. Python offers several built-in and third-party profiling tools to help developers optimize their applications.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Profiling is a fundamental technique in software development that enables programmers to identify and rectify performance bottlenecks in their code. Python offers several built-in and third-party profiling tools to help developers optimize their applications. In this article, we'll delve into Python's standard library profiling modules, &lt;code&gt;cProfile&lt;/code&gt; and &lt;code&gt;profile&lt;/code&gt;, and introduce two popular third-party profilers: &lt;code&gt;memory-profiler&lt;/code&gt; and &lt;code&gt;line-profiler&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Creating a multi-provider notification service in Python is efficient and streamlined, thanks to Python's object-oriented features and robust third-party SDKs. With a modular design, this service can easily accommodate additional notification providers in the future.&lt;/p&gt;</content><category term="Python"/><category term="Notifications"/><category term="Design"/><category term="Python"/></entry><entry><title>Unleashing Python's Hidden Power: Profiling for Performance Optimization</title><link href="https://pandabb3356.github.io/python-profiling-for-performance.html" rel="alternate"/><published>2023-08-16T00:00:00+08:00</published><updated>2025-12-21T06:57:30.688343+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2023-08-16:/python-profiling-for-performance.html</id><summary type="html">&lt;p&gt;Profiling is a fundamental technique in software development that enables programmers to identify and rectify performance bottlenecks in their code. Python offers several built-in and third-party profiling tools to help developers optimize their applications.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Profiling is a fundamental technique in software development that enables programmers to identify and rectify performance bottlenecks in their code. Python offers several built-in and third-party profiling tools to help developers optimize their applications. In this article, we'll delve into Python's standard library profiling modules, &lt;code&gt;cProfile&lt;/code&gt; and &lt;code&gt;profile&lt;/code&gt;, and introduce two popular third-party profilers: &lt;code&gt;memory-profiler&lt;/code&gt; and &lt;code&gt;line-profiler&lt;/code&gt;.&lt;/p&gt;
 &lt;h2&gt;Understanding Profiling&lt;/h2&gt;
 &lt;p&gt;Profiling involves measuring the execution time, memory usage, and other relevant metrics of a program to pinpoint areas that could be optimized. It aids developers in making informed decisions about code improvements, leading to enhanced performance and better resource utilization.&lt;/p&gt;
 &lt;h2&gt;cProfile and profile: Python's Standard Profiling Modules&lt;/h2&gt;
@@ -777,62 +957,4 @@ mprof&lt;span class="w"&gt; &lt;/span&gt;plot
 
 &lt;h2&gt;Conclusion&lt;/h2&gt;
 &lt;p&gt;Profiling is a critical step in the software development process that enables developers to optimize their code for better performance. Python provides cProfile and profile as built-in profilers, while third-party tools like memory-profiler and line-profiler offer additional insights into memory usage and line-by-line execution times.&lt;/p&gt;
-&lt;p&gt;By using these profiling tools effectively, developers can identify and address bottlenecks, resulting in faster, more efficient, and more responsive Python applications. Choose the appropriate profiler based on your project's requirements, and harness the power of profiling to deliver top-notch software.&lt;/p&gt;</content><category term="Python"/><category term="Python"/><category term="Profiling"/><category term="cProfile"/><category term="profile"/><category term="memory-profiler"/><category term="line-profiler"/></entry><entry><title>Mastering the Adapter Design Pattern in Go</title><link href="https://pandabb3356.github.io/golang-adapter-pattern.html" rel="alternate"/><published>2023-08-15T00:00:00+08:00</published><updated>2025-12-21T04:55:07.877425+08:00</updated><author><name>Ken Huang</name></author><id>tag:pandabb3356.github.io,2023-08-15:/golang-adapter-pattern.html</id><summary type="html">&lt;p&gt;The Adapter design pattern is a structural pattern that allows objects with incompatible interfaces to work together. In this article, we'll explore the Adapter pattern in depth, discussing its principles, benefits, and providing advanced examples in Go.&lt;/p&gt;</summary><content type="html">&lt;p&gt;In the realm of software development, systems are often composed of diverse components, some of which have incompatible interfaces. This is where the Adapter design pattern comes to the rescue. The Adapter pattern enables objects with disparate interfaces to collaborate effectively, fostering code reusability, interoperability, and maintainability. In this article, we'll delve deep into the Adapter pattern, exploring its underlying principles, benefits, and showcasing advanced examples implemented in the Go programming language.&lt;/p&gt;
-&lt;h2&gt;Understanding the Adapter Pattern&lt;/h2&gt;
-&lt;p&gt;The Adapter pattern, categorized under structural design patterns, provides a solution for integrating systems that might otherwise be incompatible due to differences in interfaces. By creating a bridge between these components, the pattern ensures that they can interact seamlessly without the need for extensive modifications.&lt;/p&gt;
-&lt;h3&gt;Benefits of Using the Adapter Pattern&lt;/h3&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;Code Reusability:&lt;/strong&gt; The Adapter pattern encourages reusing existing code and components without the need to rewrite or modify them extensively.&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;Interoperability:&lt;/strong&gt; It facilitates the integration of third-party libraries or legacy codebases with modern systems, promoting collaboration.&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;Maintainability:&lt;/strong&gt; The pattern enhances code cleanliness by centralizing adaptation logic, preventing codebase clutter and workarounds.&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2&gt;Implementing the Adapter Pattern in Go&lt;/h2&gt;
-&lt;p&gt;Let's explore a more advanced example to illustrate the power of the Adapter pattern in Go. Imagine a scenario where a legacy &lt;code&gt;XMLParser&lt;/code&gt; needs to be adapted to work with a modern &lt;code&gt;JSONParser&lt;/code&gt; interface.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;package&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;main&lt;/span&gt;
-
-&lt;span class="kn"&gt;import&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;fmt&amp;quot;&lt;/span&gt;
-&lt;span class="p"&gt;)&lt;/span&gt;
-
-&lt;span class="c1"&gt;// Legacy XMLParser&lt;/span&gt;
-&lt;span class="kd"&gt;type&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;XMLParser&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kd"&gt;struct&lt;/span&gt;&lt;span class="p"&gt;{}&lt;/span&gt;
-
-&lt;span class="kd"&gt;func&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;x&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;XMLParser&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;ParseXML&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;string&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nx"&gt;fmt&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Parsing XML: %s\n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="p"&gt;}&lt;/span&gt;
-
-&lt;span class="c1"&gt;// Modern JSONParser interface&lt;/span&gt;
-&lt;span class="kd"&gt;type&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;JSONParser&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kd"&gt;interface&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nx"&gt;ParseJSON&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;string&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="p"&gt;}&lt;/span&gt;
-
-&lt;span class="c1"&gt;// Adapter to make XMLParser work with JSONParser&lt;/span&gt;
-&lt;span class="kd"&gt;type&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;XMLJSONAdapter&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kd"&gt;struct&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nx"&gt;XMLParser&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;XMLParser&lt;/span&gt;
-&lt;span class="p"&gt;}&lt;/span&gt;
-
-&lt;span class="kd"&gt;func&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;a&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;XMLJSONAdapter&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;ParseJSON&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;string&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nx"&gt;adaptedData&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&amp;lt;converted&amp;gt;&amp;quot;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&amp;lt;/converted&amp;gt;&amp;quot;&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nx"&gt;a&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;XMLParser&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;ParseXML&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;adaptedData&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="p"&gt;}&lt;/span&gt;
-
-&lt;span class="kd"&gt;func&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;main&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nx"&gt;xmlParser&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="nx"&gt;XMLParser&lt;/span&gt;&lt;span class="p"&gt;{}&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nx"&gt;adapter&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="nx"&gt;XMLJSONAdapter&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nx"&gt;XMLParser&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;xmlParser&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
-
-&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;`{&amp;quot;key&amp;quot;: &amp;quot;value&amp;quot;}`&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nx"&gt;adapter&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;ParseJSON&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="p"&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In this example, the &lt;code&gt;XMLJSONAdapter&lt;/code&gt; adapts the legacy &lt;code&gt;XMLParser&lt;/code&gt; to work with the modern &lt;code&gt;JSONParser&lt;/code&gt; interface, enabling the parsing of JSON data using the XML parser.&lt;/p&gt;
-&lt;h2&gt;Real-World Use Case: Database Adapters&lt;/h2&gt;
-&lt;p&gt;A common real-world scenario where the Adapter pattern shines is in database connectivity. Different databases often have unique APIs, making direct integration challenging. Adapters can bridge the gap, allowing a unified interface for working with diverse database systems.&lt;/p&gt;
-&lt;h2&gt;Conclusion&lt;/h2&gt;
-&lt;p&gt;The Adapter design pattern is a vital tool for seamlessly integrating components with disparate interfaces. By enabling effective collaboration between otherwise incompatible systems, the Adapter pattern promotes code reusability, interoperability, and maintainability. Whether adapting legacy code or integrating third-party libraries, the Adapter pattern plays a pivotal role in achieving efficient and organized software development. As you continue to master this pattern, you'll find yourself equipped with a powerful tool to conquer interface compatibility challenges in your software projects.&lt;/p&gt;</content><category term="Golang"/><category term="Golang"/><category term="Design Patterns"/><category term="Adapter Pattern"/></entry></feed>
+&lt;p&gt;By using these profiling tools effectively, developers can identify and address bottlenecks, resulting in faster, more efficient, and more responsive Python applications. Choose the appropriate profiler based on your project's requirements, and harness the power of profiling to deliver top-notch software.&lt;/p&gt;</content><category term="Python"/><category term="Python"/><category term="Profiling"/><category term="cProfile"/><category term="profile"/><category term="memory-profiler"/><category term="line-profiler"/></entry></feed>

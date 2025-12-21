@@ -3,6 +3,11 @@ html_selector = "main"
 base_directory = "/home/runner/work/mywebite/mywebite/output"
 
 [[input.files]]
+path = "django-drf-spectacular-envelope-responses-advanced.html"
+url = "/django-drf-spectacular-envelope-responses-advanced.html"
+title = "Django DRF-Spectacular Envelope Responses: Advanced Patterns and Trade-offs"
+
+[[input.files]]
 path = "django-drf-spectacular-custom-envelope-responses.html"
 url = "/django-drf-spectacular-custom-envelope-responses.html"
 title = "Django DRF-Spectacular: Documenting Custom Envelope Responses"

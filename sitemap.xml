@@ -6,105 +6,112 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://pandabb3356.github.io/</loc>
-<lastmod>2025-12-21T04:55:54-00:00</lastmod>
+<lastmod>2025-12-21T06:58:19-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://pandabb3356.github.io/blog.html</loc>
-<lastmod>2025-12-21T04:55:54-00:00</lastmod>
+<lastmod>2025-12-21T06:58:19-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://pandabb3356.github.io/blog2.html</loc>
-<lastmod>2025-12-21T04:55:54-00:00</lastmod>
+<lastmod>2025-12-21T06:58:19-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://pandabb3356.github.io/designing-notification-service-python.html</loc>
-<lastmod>2025-12-21T04:55:07+08:00</lastmod>
+<lastmod>2025-12-21T06:57:30+08:00</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://pandabb3356.github.io/django-drf-spectacular-custom-envelope-responses.html</loc>
-<lastmod>2025-12-21T04:55:07+08:00</lastmod>
+<lastmod>2025-12-21T06:57:30+08:00</lastmod>
+<changefreq>monthly</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
+<loc>https://pandabb3356.github.io/django-drf-spectacular-envelope-responses-advanced.html</loc>
+<lastmod>2025-12-21T06:57:30+08:00</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://pandabb3356.github.io/gensim-topic-modelling-python.html</loc>
-<lastmod>2025-12-21T04:55:07+08:00</lastmod>
+<lastmod>2025-12-21T06:57:30+08:00</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://pandabb3356.github.io/golang-adapter-pattern.html</loc>
-<lastmod>2025-12-21T04:55:07+08:00</lastmod>
+<lastmod>2025-12-21T06:57:30+08:00</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://pandabb3356.github.io/golang-comprehensive-dive-into-go-jet.html</loc>
-<lastmod>2025-12-21T04:55:07+08:00</lastmod>
+<lastmod>2025-12-21T06:57:30+08:00</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://pandabb3356.github.io/golang-gin-pprof-integration.html</loc>
-<lastmod>2025-12-21T04:55:07+08:00</lastmod>
+<lastmod>2025-12-21T06:57:30+08:00</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://pandabb3356.github.io/golang-observer-pattern-with-goroutines.html</loc>
-<lastmod>2025-12-21T04:55:07+08:00</lastmod>
+<lastmod>2025-12-21T06:57:30+08:00</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://pandabb3356.github.io/golang-option-struct-pattern.html</loc>
-<lastmod>2025-12-21T04:55:07+08:00</lastmod>
+<lastmod>2025-12-21T06:57:30+08:00</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://pandabb3356.github.io/golang-singleton-pattern.html</loc>
-<lastmod>2025-12-21T04:55:07+08:00</lastmod>
+<lastmod>2025-12-21T06:57:30+08:00</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://pandabb3356.github.io/pelican-static-site-generation-python.html</loc>
-<lastmod>2025-12-21T04:55:07+08:00</lastmod>
+<lastmod>2025-12-21T06:57:30+08:00</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://pandabb3356.github.io/python-metaprogramming-decorators.html</loc>
-<lastmod>2025-12-21T04:55:07+08:00</lastmod>
+<lastmod>2025-12-21T06:57:30+08:00</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://pandabb3356.github.io/python-profiling-for-performance.html</loc>
-<lastmod>2025-12-21T04:55:07+08:00</lastmod>
+<lastmod>2025-12-21T06:57:30+08:00</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.5</priority>
 </url>
