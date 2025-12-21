@@ -3,6 +3,11 @@ html_selector = "main"
 base_directory = "/home/runner/work/mywebite/mywebite/output"
 
 [[input.files]]
+path = "django-drf-spectacular-custom-envelope-responses.html"
+url = "/django-drf-spectacular-custom-envelope-responses.html"
+title = "Django DRF-Spectacular: Documenting Custom Envelope Responses"
+
+[[input.files]]
 path = "python-metaprogramming-decorators.html"
 url = "/python-metaprogramming-decorators.html"
 title = "Python Metaprogramming and Decorators: Enhancing Code Dynamics"

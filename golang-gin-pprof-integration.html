@@ -35,7 +35,7 @@
 <meta content="https://pandabb3356.github.io/golang-gin-pprof-integration.html" property="og:url"/>
 <meta content="Integrating pprof with Gin" property="title"/>
 <meta content="2023-08-18 21:43:46+0800" property="article:published_time"/>
-<meta content="2024-04-30 17:42:27+0800" property="article:modified_time"/>
+<meta content="2025-12-21 04:55:07+0800" property="article:modified_time"/>
 <meta content="https://pandabb3356.github.io" property="article:author"/>
 <meta content="Golang" property="article:section"/>
 <meta content="golang" property="article:tag"/>
@@ -48,7 +48,7 @@
 <meta content="A step-by-step guide on how to integrate Go's pprof with the Gin web framework using gin-contrib/pprof." name="twitter:description"/>
 <meta content="https://pandabb3356.github.io/images/covers/austin-distel-21GWwco-JBQ-unsplash.jpg" name="twitter:image"/>
 <meta content="https://pandabb3356.github.io/golang-gin-pprof-integration.html" name="twitter:url"/>
-<link href="https://pandabb3356.github.io/golang-gin-pprof-integration.html" rel="canonical"/><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "KH", "item": "https://pandabb3356.github.io"}, {"@type": "ListItem", "position": 2, "name": "Golang gin pprof integration", "item": "https://pandabb3356.github.io/golang-gin-pprof-integration.html"}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "author": {"@type": "Person", "name": "Ken Huang"}, "publisher": {"@type": "Organization", "name": "KH", "logo": {"@type": "ImageObject", "url": "https://pandabb3356.github.io/images/logos/logo-main.png"}}, "headline": "Integrating pprof with Gin", "about": "Golang", "datePublished": "2023-08-18 21:43", "image": "https://pandabb3356.github.io/images/covers/austin-distel-21GWwco-JBQ-unsplash.jpg"}</script></head>
+<link href="https://pandabb3356.github.io/golang-gin-pprof-integration.html" rel="canonical"/><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "KH", "item": "https://pandabb3356.github.io"}, {"@type": "ListItem", "position": 2, "name": "Golang gin pprof integration", "item": "https://pandabb3356.github.io/golang-gin-pprof-integration.html"}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "author": {"@type": "Person", "name": "Ken Huang"}, "publisher": {"@type": "Organization", "name": "KH", "logo": {"@type": "ImageObject", "url": "https://pandabb3356.github.io/images/logos/logo-main.png"}}, "headline": "Integrating pprof with Gin", "about": "Golang", "datePublished": "2023-08-18 21:43", "image": "https://pandabb3356.github.io/images/covers/austin-distel-21GWwco-JBQ-unsplash.jpg"}</script><meta content="summary" name="twitter:card"/><meta content="https://pandabb3356.github.io/golang-gin-pprof-integration.html" property="og:url"/><meta content="article" property="og:type"/><meta content="Integrating pprof with Gin" property="og:title"/><meta content="A step-by-step guide on how to integrate Go's pprof with the Gin web framework using gin-contrib/pprof." property="og:description"/><meta content="https://pandabb3356.github.io/images/covers/austin-distel-21GWwco-JBQ-unsplash.jpg" property="og:image"/><meta content="C" property="og:locale"/></head>
 <body id="top">
 <!-- # preloader
 ================================================== -->
@@ -172,49 +172,49 @@
 </ul>
 <h2>Setting Up Gin</h2>
 <p>Install Gin:</p>
-<div class="highlight"><pre><span></span><code><span class="k">go</span><span class="w"> </span><span class="nx">get</span><span class="w"> </span><span class="o">-</span><span class="nx">u</span><span class="w"> </span><span class="nx">github</span><span class="p">.</span><span class="nx">com</span><span class="o">/</span><span class="nx">gin</span><span class="o">-</span><span class="nx">gonic</span><span class="o">/</span><span class="nx">gin</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">go</span><span class="w"> </span><span class="nx">get</span><span class="w"> </span><span class="o">-</span><span class="nx">u</span><span class="w"> </span><span class="nx">github</span><span class="p">.</span><span class="nx">com</span><span class="o">/</span><span class="nx">gin</span><span class="o">-</span><span class="nx">gonic</span><span class="o">/</span><span class="nx">gin</span>
 </code></pre></div>
 <p>Create a simple <code>Gin</code> application:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="s">"github.com/gin-gonic/gin"</span><span class="w"></span>
+<span class="kn">import</span><span class="w"> </span><span class="s">"github.com/gin-gonic/gin"</span>
 
-<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="nx">r</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">gin</span><span class="p">.</span><span class="nx">Default</span><span class="p">()</span><span class="w"></span>
-<span class="w">    </span><span class="nx">r</span><span class="p">.</span><span class="nx">GET</span><span class="p">(</span><span class="s">"/"</span><span class="p">,</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="nx">c</span><span class="p">.</span><span class="nx">String</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span><span class="w"> </span><span class="s">"Welcome to Gin!"</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="p">})</span><span class="w"></span>
-<span class="w">    </span><span class="nx">r</span><span class="p">.</span><span class="nx">Run</span><span class="p">(</span><span class="s">":8080"</span><span class="p">)</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">r</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">gin</span><span class="p">.</span><span class="nx">Default</span><span class="p">()</span>
+<span class="w">    </span><span class="nx">r</span><span class="p">.</span><span class="nx">GET</span><span class="p">(</span><span class="s">"/"</span><span class="p">,</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">c</span><span class="p">.</span><span class="nx">String</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span><span class="w"> </span><span class="s">"Welcome to Gin!"</span><span class="p">)</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="w">    </span><span class="nx">r</span><span class="p">.</span><span class="nx">Run</span><span class="p">(</span><span class="s">":8080"</span><span class="p">)</span>
+<span class="p">}</span>
 </code></pre></div>
 <p>If you run the application and visit <code>http://localhost:8080/</code>, you should see "Welcome to Gin!".</p>
 <h2>Integrating <code>pprof</code> using <code>gin-contrib/pprof</code></h2>
 <ul>
 <li>Start by installing the <code>gin-contrib/pprof</code> package:</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="k">go</span><span class="w"> </span><span class="nx">get</span><span class="w"> </span><span class="o">-</span><span class="nx">u</span><span class="w"> </span><span class="nx">github</span><span class="p">.</span><span class="nx">com</span><span class="o">/</span><span class="nx">gin</span><span class="o">-</span><span class="nx">contrib</span><span class="o">/</span><span class="nx">pprof</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="k">go</span><span class="w"> </span><span class="nx">get</span><span class="w"> </span><span class="o">-</span><span class="nx">u</span><span class="w"> </span><span class="nx">github</span><span class="p">.</span><span class="nx">com</span><span class="o">/</span><span class="nx">gin</span><span class="o">-</span><span class="nx">contrib</span><span class="o">/</span><span class="nx">pprof</span>
 </code></pre></div>
 <ul>
 <li>Modify your Gin application to integrate <code>pprof</code>:</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="p">(</span><span class="w"></span>
-<span class="w">    </span><span class="s">"github.com/gin-gonic/gin"</span><span class="w"></span>
-<span class="w">    </span><span class="s">"github.com/gin-contrib/pprof"</span><span class="w"></span>
-<span class="p">)</span><span class="w"></span>
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">"github.com/gin-gonic/gin"</span>
+<span class="w">    </span><span class="s">"github.com/gin-contrib/pprof"</span>
+<span class="p">)</span>
 
-<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="nx">r</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">gin</span><span class="p">.</span><span class="nx">Default</span><span class="p">()</span><span class="w"></span>
-<span class="w">    </span><span class="nx">r</span><span class="p">.</span><span class="nx">GET</span><span class="p">(</span><span class="s">"/"</span><span class="p">,</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="nx">c</span><span class="p">.</span><span class="nx">String</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span><span class="w"> </span><span class="s">"Welcome to Gin!"</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="p">})</span><span class="w"></span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">r</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">gin</span><span class="p">.</span><span class="nx">Default</span><span class="p">()</span>
+<span class="w">    </span><span class="nx">r</span><span class="p">.</span><span class="nx">GET</span><span class="p">(</span><span class="s">"/"</span><span class="p">,</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">c</span><span class="p">.</span><span class="nx">String</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span><span class="w"> </span><span class="s">"Welcome to Gin!"</span><span class="p">)</span>
+<span class="w">    </span><span class="p">})</span>
 
-<span class="w">    </span><span class="c1">// Use the pprof middleware</span><span class="w"></span>
-<span class="w">    </span><span class="nx">pprof</span><span class="p">.</span><span class="nx">Register</span><span class="p">(</span><span class="nx">r</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// Use the pprof middleware</span>
+<span class="w">    </span><span class="nx">pprof</span><span class="p">.</span><span class="nx">Register</span><span class="p">(</span><span class="nx">r</span><span class="p">)</span>
 
-<span class="w">    </span><span class="nx">r</span><span class="p">.</span><span class="nx">Run</span><span class="p">(</span><span class="s">":8080"</span><span class="p">)</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="nx">r</span><span class="p">.</span><span class="nx">Run</span><span class="p">(</span><span class="s">":8080"</span><span class="p">)</span>
+<span class="p">}</span>
 </code></pre></div>
 <p>The <code>pprof.Register(r)</code> function attaches all standard <code>net/http/pprof</code> handlers to the provided <code>*gin.Engine</code>.</p>
 <h2>Accessing Profiling Data</h2>
@@ -270,7 +270,7 @@
 <div class="row">
 <div class="column ss-copyright">
 <span>Powered by <a href="https://getpelican.com/">Pelican</a></span>
-<span>© Copyright Ken Huang 2024</span>
+<span>© Copyright Ken Huang 2025</span>
 <span>Design by <a href="https://www.styleshout.com/">StyleShout</a></span>
 </div>
 <div class="ss-go-top">

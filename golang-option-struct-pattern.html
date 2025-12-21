@@ -35,7 +35,7 @@
 <meta content="https://pandabb3356.github.io/golang-option-struct-pattern.html" property="og:url"/>
 <meta content="Exploring the Option Struct Pattern in Go" property="title"/>
 <meta content="2023-08-15 00:00:00+0800" property="article:published_time"/>
-<meta content="2024-04-30 17:42:27+0800" property="article:modified_time"/>
+<meta content="2025-12-21 04:55:07+0800" property="article:modified_time"/>
 <meta content="https://pandabb3356.github.io" property="article:author"/>
 <meta content="Golang" property="article:section"/>
 <meta content="Golang" property="article:tag"/>
@@ -49,7 +49,7 @@
 <meta content="When working with the Go programming language, developers often encounter situations where functions may return values that could be missing or have a special meaning. The Option struct pattern is a powerful approach to address this, providing a clean and idiomatic way to handle optional values and errors. In this article, we'll delve into why and how Go uses the Option struct pattern." name="twitter:description"/>
 <meta content="https://pandabb3356.github.io/images/covers/hannah-joshua-46T6nVjRc2w-unsplash.jpg" name="twitter:image"/>
 <meta content="https://pandabb3356.github.io/golang-option-struct-pattern.html" name="twitter:url"/>
-<link href="https://pandabb3356.github.io/golang-option-struct-pattern.html" rel="canonical"/><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "KH", "item": "https://pandabb3356.github.io"}, {"@type": "ListItem", "position": 2, "name": "Golang option struct pattern", "item": "https://pandabb3356.github.io/golang-option-struct-pattern.html"}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "author": {"@type": "Person", "name": "Ken Huang"}, "publisher": {"@type": "Organization", "name": "KH", "logo": {"@type": "ImageObject", "url": "https://pandabb3356.github.io/images/logos/logo-main.png"}}, "headline": "Exploring the Option Struct Pattern in Go", "about": "Golang", "datePublished": "2023-08-15 00:00", "image": "https://pandabb3356.github.io/images/covers/hannah-joshua-46T6nVjRc2w-unsplash.jpg"}</script></head>
+<link href="https://pandabb3356.github.io/golang-option-struct-pattern.html" rel="canonical"/><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "KH", "item": "https://pandabb3356.github.io"}, {"@type": "ListItem", "position": 2, "name": "Golang option struct pattern", "item": "https://pandabb3356.github.io/golang-option-struct-pattern.html"}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "author": {"@type": "Person", "name": "Ken Huang"}, "publisher": {"@type": "Organization", "name": "KH", "logo": {"@type": "ImageObject", "url": "https://pandabb3356.github.io/images/logos/logo-main.png"}}, "headline": "Exploring the Option Struct Pattern in Go", "about": "Golang", "datePublished": "2023-08-15 00:00", "image": "https://pandabb3356.github.io/images/covers/hannah-joshua-46T6nVjRc2w-unsplash.jpg"}</script><meta content="summary" name="twitter:card"/><meta content="https://pandabb3356.github.io/golang-option-struct-pattern.html" property="og:url"/><meta content="article" property="og:type"/><meta content="Exploring the Option Struct Pattern in Go" property="og:title"/><meta content="When working with the Go programming language, developers often encounter situations where functions may return values that could be missing or have a special meaning. The Option struct pattern is a powerful approach to address this, providing a clean and idiomatic way to handle optional values and errors. In this article, we'll delve into why and how Go uses the Option struct pattern." property="og:description"/><meta content="https://pandabb3356.github.io/images/covers/hannah-joshua-46T6nVjRc2w-unsplash.jpg" property="og:image"/><meta content="C" property="og:locale"/></head>
 <body id="top">
 <!-- # preloader
 ================================================== -->
@@ -172,50 +172,50 @@
 <h2>Introducing the Option Struct</h2>
 <p>The Option struct pattern is a design approach that uses a custom type, usually called <code>Option</code> or a similar name, to wrap values that could be absent. This pattern enhances code readability by making the presence or absence of a value explicit, removing the need for constant error checks.</p>
 <p>Here's an example of how the Option struct pattern works in Go:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="p">(</span><span class="w"></span>
-<span class="w">    </span><span class="s">"errors"</span><span class="w"></span>
-<span class="w">    </span><span class="s">"fmt"</span><span class="w"></span>
-<span class="p">)</span><span class="w"></span>
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">"errors"</span>
+<span class="w">    </span><span class="s">"fmt"</span>
+<span class="p">)</span>
 
-<span class="c1">// Option represents an optional value or an error</span><span class="w"></span>
-<span class="kd">type</span><span class="w"> </span><span class="nx">Option</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="nx">Value</span><span class="w"> </span><span class="kd">interface</span><span class="p">{}</span><span class="w"></span>
-<span class="w">    </span><span class="nx">Err</span><span class="w">   </span><span class="kt">error</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="c1">// Option represents an optional value or an error</span>
+<span class="kd">type</span><span class="w"> </span><span class="nx">Option</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Value</span><span class="w"> </span><span class="kd">interface</span><span class="p">{}</span>
+<span class="w">    </span><span class="nx">Err</span><span class="w">   </span><span class="kt">error</span>
+<span class="p">}</span>
 
-<span class="c1">// NewOption creates a new Option with a value</span><span class="w"></span>
-<span class="kd">func</span><span class="w"> </span><span class="nx">NewOption</span><span class="p">(</span><span class="nx">val</span><span class="w"> </span><span class="kd">interface</span><span class="p">{})</span><span class="w"> </span><span class="nx">Option</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">Option</span><span class="p">{</span><span class="nx">Value</span><span class="p">:</span><span class="w"> </span><span class="nx">val</span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="c1">// NewOption creates a new Option with a value</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">NewOption</span><span class="p">(</span><span class="nx">val</span><span class="w"> </span><span class="kd">interface</span><span class="p">{})</span><span class="w"> </span><span class="nx">Option</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">Option</span><span class="p">{</span><span class="nx">Value</span><span class="p">:</span><span class="w"> </span><span class="nx">val</span><span class="p">}</span>
+<span class="p">}</span>
 
-<span class="c1">// NewErrorOption creates a new Option with an error</span><span class="w"></span>
-<span class="kd">func</span><span class="w"> </span><span class="nx">NewErrorOption</span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="nx">Option</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">Option</span><span class="p">{</span><span class="nx">Err</span><span class="p">:</span><span class="w"> </span><span class="nx">err</span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="c1">// NewErrorOption creates a new Option with an error</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">NewErrorOption</span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="nx">Option</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">Option</span><span class="p">{</span><span class="nx">Err</span><span class="p">:</span><span class="w"> </span><span class="nx">err</span><span class="p">}</span>
+<span class="p">}</span>
 
-<span class="c1">// main function demonstrates the use of Option struct</span><span class="w"></span>
-<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="nx">data</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="p">[]</span><span class="kt">int</span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="nx">result</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">findElement</span><span class="p">(</span><span class="nx">data</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">)</span><span class="w"></span>
+<span class="c1">// main function demonstrates the use of Option struct</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">data</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="p">[]</span><span class="kt">int</span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">}</span>
+<span class="w">    </span><span class="nx">result</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">findElement</span><span class="p">(</span><span class="nx">data</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">)</span>
 
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">result</span><span class="p">.</span><span class="nx">Err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">"Error:"</span><span class="p">,</span><span class="w"> </span><span class="nx">result</span><span class="p">.</span><span class="nx">Err</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">"Value found:"</span><span class="p">,</span><span class="w"> </span><span class="nx">result</span><span class="p">.</span><span class="nx">Value</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">result</span><span class="p">.</span><span class="nx">Err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">"Error:"</span><span class="p">,</span><span class="w"> </span><span class="nx">result</span><span class="p">.</span><span class="nx">Err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">"Value found:"</span><span class="p">,</span><span class="w"> </span><span class="nx">result</span><span class="p">.</span><span class="nx">Value</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
 
-<span class="c1">// findElement searches for an element in a slice</span><span class="w"></span>
-<span class="kd">func</span><span class="w"> </span><span class="nx">findElement</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">[]</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="nx">target</span><span class="w"> </span><span class="kt">int</span><span class="p">)</span><span class="w"> </span><span class="nx">Option</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">val</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="k">range</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">val</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nx">target</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="nx">NewOption</span><span class="p">(</span><span class="nx">val</span><span class="p">)</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">NewErrorOption</span><span class="p">(</span><span class="nx">errors</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="s">"Element not found"</span><span class="p">))</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="c1">// findElement searches for an element in a slice</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">findElement</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">[]</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="nx">target</span><span class="w"> </span><span class="kt">int</span><span class="p">)</span><span class="w"> </span><span class="nx">Option</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">val</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="k">range</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">val</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nx">target</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="nx">NewOption</span><span class="p">(</span><span class="nx">val</span><span class="p">)</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">NewErrorOption</span><span class="p">(</span><span class="nx">errors</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="s">"Element not found"</span><span class="p">))</span>
+<span class="p">}</span>
 </code></pre></div>
 <p>In this example, the Option struct wraps the value or error, making the code more self-explanatory. Functions like NewOption and NewErrorOption help create instances of the Option struct with the appropriate value or error.</p>
 <h2>Benefits of the Option Struct Pattern</h2>
@@ -287,7 +287,7 @@
 <div class="row">
 <div class="column ss-copyright">
 <span>Powered by <a href="https://getpelican.com/">Pelican</a></span>
-<span>© Copyright Ken Huang 2024</span>
+<span>© Copyright Ken Huang 2025</span>
 <span>Design by <a href="https://www.styleshout.com/">StyleShout</a></span>
 </div>
 <div class="ss-go-top">
