@@ -3,6 +3,21 @@ html_selector = "main"
 base_directory = "/home/runner/work/mywebite/mywebite/output"
 
 [[input.files]]
+path = "caching-systems-part-2-versioned-caches-pubsub-consistency.html"
+url = "/caching-systems-part-2-versioned-caches-pubsub-consistency.html"
+title = "Caching Systems (Part 2): Versioned Caches, Pub/Sub Invalidation, and Consistency"
+
+[[input.files]]
+path = "caching-systems-part-3-go-cache-aside-redis.html"
+url = "/caching-systems-part-3-go-cache-aside-redis.html"
+title = "Caching Systems (Part 3): Building Cache-Aside in Go with Redis"
+
+[[input.files]]
+path = "caching-systems-part-1-layers-strategies-failure-modes.html"
+url = "/caching-systems-part-1-layers-strategies-failure-modes.html"
+title = "Caching Systems (Part 1): Layers, Strategies, and Failure Modes"
+
+[[input.files]]
 path = "django-drf-spectacular-envelope-responses-advanced.html"
 url = "/django-drf-spectacular-envelope-responses-advanced.html"
 title = "Django DRF-Spectacular Envelope Responses: Advanced Patterns and Trade-offs"

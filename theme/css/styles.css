@@ -2954,6 +2954,7 @@ img.u-pull-left {
 .s-pagewrap .circles,
 .s-pagewrap .circles span {
     position : absolute;
+    pointer-events: none;
 }
 
 .s-pagewrap .circles {
@@ -5103,4 +5104,3 @@ body.search-is-visible {
     font-style: italic;
     margin: 0;
 }
-
