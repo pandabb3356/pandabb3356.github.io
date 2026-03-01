@@ -1,0 +1,104 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><title>Python Metaprogramming and Decorators: Enhancing Code Dynamics</title><link rel="canonical" href="https://pandabb3356.github.io/blog/python-metaprogramming-decorators/"><meta name="description" content="Dive into Python's metaprogramming realm with a spotlight on decorators. Understand their functioning, unveil practical implementations, and craft custom decorators to uplift code aesthetics and reliability."><meta name="robots" content="index, follow"><meta property="og:title" content="Python Metaprogramming and Decorators: Enhancing Code Dynamics"><meta property="og:type" content="website"><meta property="og:image" content="images/covers/henry-perks-dw5fYCa8kFs-unsplash.jpg"><meta property="og:url" content="https://pandabb3356.github.io/blog/python-metaprogramming-decorators/"><meta property="og:description" content="Dive into Python's metaprogramming realm with a spotlight on decorators. Understand their functioning, unveil practical implementations, and craft custom decorators to uplift code aesthetics and reliability."><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Python Metaprogramming and Decorators: Enhancing Code Dynamics"><meta name="twitter:image" content="images/covers/henry-perks-dw5fYCa8kFs-unsplash.jpg"><meta name="twitter:description" content="Dive into Python's metaprogramming realm with a spotlight on decorators. Understand their functioning, unveil practical implementations, and craft custom decorators to uplift code aesthetics and reliability."><meta name="viewport" content="width=device-width"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="generator" content="Astro v5.17.3"><!-- Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=G-M3C36GR88F"></script><script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-M3C36GR88F');
+        </script><!-- Google Fonts: Anton (Heading), Bebas Neue (Sub), Inter (Body), JetBrains Mono (Code) --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/_page_.XZvY61kE.css"></head> <body> <!-- Note: We will update the Header component itself next if it has inline styles, but global.css handles most layout now --> <header class="site-header"> <div class="container header-inner"> <a href="/" class="logo">KH</a> <nav class="nav-links"> <a href="/#intro">Intro</a><a href="/#about">About</a><a href="/#works">Works</a><a href="/blog">Blog</a> </nav> </div> </header> <main>   <div class="article-hero reveal"> <div class="hero-bg-slash"></div> <div class="container hero-content"> <div class="article-meta"> 2023.08.22 <span class="meta-divider">//</span> <span class="meta-category">Python</span> </div> <h1 class="article-title"> Python Metaprogramming and Decorators: Enhancing Code Dynamics </h1> <div class="article-tags"> <a href="/tags/python" class="article-tag">
+#python </a><a href="/tags/decorators" class="article-tag">
+#decorators </a> </div> </div> </div>  <div class="container reveal"> <article class="prose" style="max-width: 800px; margin: 0 auto; background: var(--bg-color); padding: 2rem 0 5rem 0;"> <p>Python, being a dynamic language, provides robust tools for metaprogramming – the art of writing code that manipulates itself. One such metaprogramming tool that stands out is the ‘decorator’. They not only improve code readability but also introduce added functionalities seamlessly.</p>
+<h2 id="a-glimpse-into-metaprogramming">A Glimpse into Metaprogramming</h2>
+<p>Metaprogramming is the practice of writing programs that can modify, generate, or manipulate other programs (or themselves). In Python, this often translates to altering classes, functions, or modules at runtime.</p>
+<p>Examples include:</p>
+<ul>
+<li>Dynamic attribute addition to objects.</li>
+<li>Modifying classes with class decorators.</li>
+<li>Wrapping or modifying functions with decorators.</li>
+</ul>
+<h2 id="deciphering-decorators">Deciphering Decorators</h2>
+<p>Decorators, in essence, are design patterns in Python, allowing you to add new functionalities to existing objects without altering their structure. They’re often prefixed with <code>@</code> and placed above functions or methods.</p>
+<h3 id="a-basic-decorator">A Basic Decorator:</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> simple_decorator</span><span style="color:#E1E4E8">(func):</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> wrapper</span><span style="color:#E1E4E8">():</span></span>
+<span class="line"><span style="color:#79B8FF">        print</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Before the function call"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">        func()</span></span>
+<span class="line"><span style="color:#79B8FF">        print</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"After the function call"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> wrapper</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">@simple_decorator</span></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> say_hello</span><span style="color:#E1E4E8">():</span></span>
+<span class="line"><span style="color:#79B8FF">    print</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Hello!"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">say_hello()</span></span></code></pre>
+<p>Executing <code>say_hello()</code> would print:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Before the function call</span></span>
+<span class="line"><span>Hello!</span></span>
+<span class="line"><span>After the function call</span></span></code></pre>
+<p>The <code>@simple_decorator</code> is a syntactic sugar for: <code>say_hello = simple_decorator(say_hello)</code>.</p>
+<h3 id="practical-applications-of-decorators">Practical Applications of Decorators</h3>
+<ol>
+<li>
+<p><strong>Logging</strong>: Track metadata about function execution times, arguments, or results.</p>
+</li>
+<li>
+<p><strong>Authorization</strong>: Check if someone’s authorized to use an API endpoint, a method, etc.</p>
+</li>
+<li>
+<p><strong>Enrichment</strong>: Modify the results or inputs of functions, e.g., changing the datatype, adding default values, or computing additional data.</p>
+</li>
+<li>
+<p><strong>Memoization</strong>: Store results of expensive function calls and return the cached result when the same inputs occur again.</p>
+</li>
+</ol>
+<h3 id="crafting-custom-decorators">Crafting Custom Decorators</h3>
+<p>To elevate code legibility and upkeep:</p>
+<ol>
+<li>
+<p><strong>With Arguments</strong>:</p>
+<p>Decorators can also accept arguments, allowing you to further customize behavior. For instance, a decorator to repeat the execution of a function <code>n</code> times:</p>
+</li>
+</ol>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> repeat</span><span style="color:#E1E4E8">(n</span><span style="color:#F97583">=</span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> decorator</span><span style="color:#E1E4E8">(func):</span></span>
+<span class="line"><span style="color:#F97583">        def</span><span style="color:#B392F0"> wrapper</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">args, </span><span style="color:#F97583">**</span><span style="color:#E1E4E8">kwargs):</span></span>
+<span class="line"><span style="color:#F97583">            for</span><span style="color:#E1E4E8"> _ </span><span style="color:#F97583">in</span><span style="color:#79B8FF"> range</span><span style="color:#E1E4E8">(n):</span></span>
+<span class="line"><span style="color:#E1E4E8">                result </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> func(</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">args, </span><span style="color:#F97583">**</span><span style="color:#E1E4E8">kwargs)</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#E1E4E8"> result</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> wrapper</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> decorator</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">@repeat</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">n</span><span style="color:#F97583">=</span><span style="color:#79B8FF">3</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> greet</span><span style="color:#E1E4E8">(name):</span></span>
+<span class="line"><span style="color:#79B8FF">    print</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"Hello, </span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">name</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">!"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">greet(</span><span style="color:#9ECBFF">"Alice"</span><span style="color:#E1E4E8">)</span></span></code></pre>
+<p>This prints “Hello, Alice!” thrice.</p>
+<ol start="2">
+<li>
+<p><strong>Class Decorators</strong>:</p>
+<p>For enhancing or modifying classes:</p>
+</li>
+</ol>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> readonly_properties</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">attrs):</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> class_decorator</span><span style="color:#E1E4E8">(cls):</span></span>
+<span class="line"><span style="color:#F97583">        for</span><span style="color:#E1E4E8"> attr </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> attrs:</span></span>
+<span class="line"><span style="color:#E1E4E8">            prop </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> property</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">cls</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">__dict__</span><span style="color:#E1E4E8">[attr])</span></span>
+<span class="line"><span style="color:#79B8FF">            setattr</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">cls</span><span style="color:#E1E4E8">, attr, prop)</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#79B8FF"> cls</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> class_decorator</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">@readonly_properties</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'name'</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> Person</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#79B8FF"> __init__</span><span style="color:#E1E4E8">(self, name):</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">._name </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> name</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> name</span><span style="color:#E1E4E8">(self):</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#79B8FF"> self</span><span style="color:#E1E4E8">._name</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">p </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> Person(</span><span style="color:#9ECBFF">"John"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#6A737D"># p.name = "Doe"  # This will raise an error</span></span></code></pre>
+<p>The <code>readonly_properties</code> decorator makes class properties read-only, preventing unintended changes.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Decorators are Python’s gems, allowing for code augmentation without direct modifications. They embody the essence of metaprogramming, offering the ability to enhance, control, and extend functionalities. By integrating decorators into your toolkit, you empower your codebase, ensuring it remains DRY (Don’t Repeat Yourself), readable, and maintainable.</p> </article> <div style="max-width: 800px; margin: 0 auto 5rem auto; border-top: 2px solid #333; padding-top: 2rem; text-align: center;"> <a href="/blog" style="font-family: var(--font-heading); font-size: 2rem; color: var(--p5-white); text-transform: uppercase;">
+← Back to Log
+</a> </div> </div>  </main> <footer class="site-footer"> <div class="container"> <div class="footer-tagline">NEVER STOP BUILDING</div> <div class="footer-socials"> <a href="https://github.com/pandabb3356" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-icon"> <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg> </a> <!-- Space for future icons (LinkedIn, Twitter, etc.) --> </div> <div class="footer-cr"> <p>&copy; 2026 Ken Huang — All Rights Reserved.</p> <p>Built with <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a></p> </div> </div> </footer> <script type="module">const s=new IntersectionObserver(e=>{e.forEach(r=>{r.isIntersecting&&r.target.classList.add("visible")})},{threshold:.1}),t=()=>{document.querySelectorAll(".reveal").forEach(e=>s.observe(e))};t();</script> </body> </html>

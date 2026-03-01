@@ -1,0 +1,108 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><title>Observer Pattern with Goroutines: Building Signal-Like Mechanisms in Go</title><link rel="canonical" href="https://pandabb3356.github.io/blog/golang-observer-pattern-with-goroutines/"><meta name="description" content="Dive into Go's powerful concurrency features to implement the observer pattern, replicating signal-like mechanisms for event-driven programming."><meta name="robots" content="index, follow"><meta property="og:title" content="Observer Pattern with Goroutines: Building Signal-Like Mechanisms in Go"><meta property="og:type" content="website"><meta property="og:image" content="images/covers/davyn-ben-Hae69R2xnAc-unsplash.jpg"><meta property="og:url" content="https://pandabb3356.github.io/blog/golang-observer-pattern-with-goroutines/"><meta property="og:description" content="Dive into Go's powerful concurrency features to implement the observer pattern, replicating signal-like mechanisms for event-driven programming."><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Observer Pattern with Goroutines: Building Signal-Like Mechanisms in Go"><meta name="twitter:image" content="images/covers/davyn-ben-Hae69R2xnAc-unsplash.jpg"><meta name="twitter:description" content="Dive into Go's powerful concurrency features to implement the observer pattern, replicating signal-like mechanisms for event-driven programming."><meta name="viewport" content="width=device-width"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="generator" content="Astro v5.17.3"><!-- Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=G-M3C36GR88F"></script><script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-M3C36GR88F');
+        </script><!-- Google Fonts: Anton (Heading), Bebas Neue (Sub), Inter (Body), JetBrains Mono (Code) --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/_page_.XZvY61kE.css"></head> <body> <!-- Note: We will update the Header component itself next if it has inline styles, but global.css handles most layout now --> <header class="site-header"> <div class="container header-inner"> <a href="/" class="logo">KH</a> <nav class="nav-links"> <a href="/#intro">Intro</a><a href="/#about">About</a><a href="/#works">Works</a><a href="/blog">Blog</a> </nav> </div> </header> <main>   <div class="article-hero reveal"> <div class="hero-bg-slash"></div> <div class="container hero-content"> <div class="article-meta"> 2023.08.21 <span class="meta-divider">//</span> <span class="meta-category">Golang</span> </div> <h1 class="article-title"> Observer Pattern with Goroutines: Building Signal-Like Mechanisms in Go </h1> <div class="article-tags"> <a href="/tags/Golang" class="article-tag">
+#Golang </a><a href="/tags/goroutines" class="article-tag">
+#goroutines </a><a href="/tags/observer pattern" class="article-tag">
+#observer pattern </a><a href="/tags/signals" class="article-tag">
+#signals </a><a href="/tags/concurrency" class="article-tag">
+#concurrency </a><a href="/tags/design patterns" class="article-tag">
+#design patterns </a> </div> </div> </div>  <div class="container reveal"> <article class="prose" style="max-width: 800px; margin: 0 auto; background: var(--bg-color); padding: 2rem 0 5rem 0;"> <h1 id="using-goroutines-to-craft-an-observer-pattern-resembling-signals">Using Goroutines to Craft an Observer Pattern resembling Signals</h1>
+<p>The observer pattern is a staple in event-driven programming, where an object (called the “subject”) maintains a list of its dependents (observers) and notifies them of any state changes. In languages like Python, signals provide a mechanism for such decoupled components to communicate. But how can we harness Go’s concurrency primitives, like goroutines, to achieve this? Let’s delve into an innovative blend of the observer pattern with goroutines.</p>
+<h2 id="why-goroutines-for-observer-pattern">Why Goroutines for Observer Pattern?</h2>
+<p>Goroutines offer lightweight concurrent execution, making them perfect candidates to handle the dynamic addition or removal of observers and event broadcasting without stalling the main thread.</p>
+<h2 id="setting-the-stage-basics-of-the-observer-pattern">Setting the Stage: Basics of the Observer Pattern</h2>
+<p>Traditionally, the observer pattern involves:</p>
+<ul>
+<li>
+<p><strong>Subject</strong>: Maintains a list of observers, facilitates adding or removing them, and notifies them of changes.</p>
+</li>
+<li>
+<p><strong>Observers</strong>: React to notifications sent by the subject.</p>
+</li>
+</ul>
+<h2 id="building-the-signal-like-observer-in-go">Building the Signal-like Observer in Go</h2>
+<h3 id="step-1-defining-the-subject">Step 1: Defining the Subject</h3>
+<p>Let’s create our <code>Subject</code>:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> Subject</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">	observers []</span><span style="color:#F97583">chan</span><span style="color:#F97583"> string</span></span>
+<span class="line"><span style="color:#E1E4E8">	mu        </span><span style="color:#B392F0">sync</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Mutex</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">s </span><span style="color:#F97583">*</span><span style="color:#B392F0">Subject</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">AddObserver</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">obs</span><span style="color:#F97583"> chan</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">	s.mu.</span><span style="color:#B392F0">Lock</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">	s.observers </span><span style="color:#F97583">=</span><span style="color:#B392F0"> append</span><span style="color:#E1E4E8">(s.observers, obs)</span></span>
+<span class="line"><span style="color:#E1E4E8">	s.mu.</span><span style="color:#B392F0">Unlock</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">s </span><span style="color:#F97583">*</span><span style="color:#B392F0">Subject</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">RemoveObserver</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">obs</span><span style="color:#F97583"> chan</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">	s.mu.</span><span style="color:#B392F0">Lock</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#F97583">	defer</span><span style="color:#E1E4E8"> s.mu.</span><span style="color:#B392F0">Unlock</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#F97583">	for</span><span style="color:#E1E4E8"> i, observer </span><span style="color:#F97583">:=</span><span style="color:#F97583"> range</span><span style="color:#E1E4E8"> s.observers {</span></span>
+<span class="line"><span style="color:#F97583">		if</span><span style="color:#E1E4E8"> obs </span><span style="color:#F97583">==</span><span style="color:#E1E4E8"> observer {</span></span>
+<span class="line"><span style="color:#E1E4E8">			s.observers </span><span style="color:#F97583">=</span><span style="color:#B392F0"> append</span><span style="color:#E1E4E8">(s.observers[:i], s.observers[i</span><span style="color:#F97583">+</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">:]</span><span style="color:#F97583">...</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">			return</span></span>
+<span class="line"><span style="color:#E1E4E8">		}</span></span>
+<span class="line"><span style="color:#E1E4E8">	}</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">s </span><span style="color:#F97583">*</span><span style="color:#B392F0">Subject</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">NotifyObservers</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">message</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">	s.mu.</span><span style="color:#B392F0">Lock</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#F97583">	defer</span><span style="color:#E1E4E8"> s.mu.</span><span style="color:#B392F0">Unlock</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#F97583">	for</span><span style="color:#E1E4E8"> _, observer </span><span style="color:#F97583">:=</span><span style="color:#F97583"> range</span><span style="color:#E1E4E8"> s.observers {</span></span>
+<span class="line"><span style="color:#F97583">		go</span><span style="color:#F97583"> func</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">ch</span><span style="color:#F97583"> chan</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">			ch </span><span style="color:#F97583">&#x3C;-</span><span style="color:#E1E4E8"> message</span></span>
+<span class="line"><span style="color:#E1E4E8">		}(observer)</span></span>
+<span class="line"><span style="color:#E1E4E8">	}</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>Here, we have used goroutines in <code>NotifyObservers</code> to concurrently send messages to all observers.</p>
+<h3 id="step-2-creating-and-observing-signals">Step 2: Creating and Observing Signals</h3>
+<p>Utilizing goroutines, we’ll create a signal-like observer:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> main</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#E1E4E8">	subject </span><span style="color:#F97583">:=</span><span style="color:#F97583"> &#x26;</span><span style="color:#B392F0">Subject</span><span style="color:#E1E4E8">{}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">	// First observer</span></span>
+<span class="line"><span style="color:#E1E4E8">	obs1 </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> make</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">chan</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">	subject.</span><span style="color:#B392F0">AddObserver</span><span style="color:#E1E4E8">(obs1)</span></span>
+<span class="line"><span style="color:#F97583">	go</span><span style="color:#F97583"> func</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#F97583">		for</span><span style="color:#E1E4E8"> message </span><span style="color:#F97583">:=</span><span style="color:#F97583"> range</span><span style="color:#E1E4E8"> obs1 {</span></span>
+<span class="line"><span style="color:#E1E4E8">			fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Observer 1 received:"</span><span style="color:#E1E4E8">, message)</span></span>
+<span class="line"><span style="color:#E1E4E8">		}</span></span>
+<span class="line"><span style="color:#E1E4E8">	}()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">	// Second observer</span></span>
+<span class="line"><span style="color:#E1E4E8">	obs2 </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> make</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">chan</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">	subject.</span><span style="color:#B392F0">AddObserver</span><span style="color:#E1E4E8">(obs2)</span></span>
+<span class="line"><span style="color:#F97583">	go</span><span style="color:#F97583"> func</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#F97583">		for</span><span style="color:#E1E4E8"> message </span><span style="color:#F97583">:=</span><span style="color:#F97583"> range</span><span style="color:#E1E4E8"> obs2 {</span></span>
+<span class="line"><span style="color:#E1E4E8">			fmt.</span><span style="color:#B392F0">Println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Observer 2 received:"</span><span style="color:#E1E4E8">, message)</span></span>
+<span class="line"><span style="color:#E1E4E8">		}</span></span>
+<span class="line"><span style="color:#E1E4E8">	}()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">	// Broadcasting a message</span></span>
+<span class="line"><span style="color:#E1E4E8">	subject.</span><span style="color:#B392F0">NotifyObservers</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Hello, Observers!"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">	// Clean up (in a real-world scenario, handle with care!)</span></span>
+<span class="line"><span style="color:#B392F0">	close</span><span style="color:#E1E4E8">(obs1)</span></span>
+<span class="line"><span style="color:#B392F0">	close</span><span style="color:#E1E4E8">(obs2)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>When you run the above, both observers will concurrently receive and process the message.</p>
+<h2 id="handling-advanced-scenarios">Handling Advanced Scenarios</h2>
+<p>With our basic setup, you can:</p>
+<ul>
+<li>
+<p><strong>Introduce more granular notifications</strong>: Instead of a single message type, differentiate messages (using structs or different channels) to allow observers to listen for specific events.</p>
+</li>
+<li>
+<p><strong>Implement buffering</strong>: With buffered channels, you can send multiple messages without waiting for the receiver to be ready, providing a smoother flow.</p>
+</li>
+<li>
+<p><strong>Timeouts and Context</strong>: Using the <code>context</code> package, introduce timeouts for observer notifications, ensuring that a stalled observer doesn’t impact the system.</p>
+</li>
+</ul>
+<h2 id="final-thoughts">Final Thoughts</h2>
+<p>Goroutines, with their lightweight concurrency model, offer a refreshing approach to the observer pattern, closely mimicking signal mechanisms seen in other languages. By blending design patterns with concurrency primitives, Go showcases its versatility in building efficient, decoupled, and event-driven systems. As Go continues its ascent in the software world, such innovations cement its place as a language that caters to both traditional and modern programming paradigms.</p> </article> <div style="max-width: 800px; margin: 0 auto 5rem auto; border-top: 2px solid #333; padding-top: 2rem; text-align: center;"> <a href="/blog" style="font-family: var(--font-heading); font-size: 2rem; color: var(--p5-white); text-transform: uppercase;">
+← Back to Log
+</a> </div> </div>  </main> <footer class="site-footer"> <div class="container"> <div class="footer-tagline">NEVER STOP BUILDING</div> <div class="footer-socials"> <a href="https://github.com/pandabb3356" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-icon"> <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg> </a> <!-- Space for future icons (LinkedIn, Twitter, etc.) --> </div> <div class="footer-cr"> <p>&copy; 2026 Ken Huang — All Rights Reserved.</p> <p>Built with <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a></p> </div> </div> </footer> <script type="module">const s=new IntersectionObserver(e=>{e.forEach(r=>{r.isIntersecting&&r.target.classList.add("visible")})},{threshold:.1}),t=()=>{document.querySelectorAll(".reveal").forEach(e=>s.observe(e))};t();</script> </body> </html>

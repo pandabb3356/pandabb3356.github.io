@@ -1,0 +1,116 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><title>Designing a Notification Service using Python</title><link rel="canonical" href="https://pandabb3356.github.io/blog/designing-notification-service-python/"><meta name="description" content="A guide on creating a Python-based notification service that integrates with multiple providers."><meta name="robots" content="index, follow"><meta property="og:title" content="Designing a Notification Service using Python"><meta property="og:type" content="website"><meta property="og:image" content="images/covers/jamie-street-33oxtOMk6Ac-unsplash.jpg"><meta property="og:url" content="https://pandabb3356.github.io/blog/designing-notification-service-python/"><meta property="og:description" content="A guide on creating a Python-based notification service that integrates with multiple providers."><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Designing a Notification Service using Python"><meta name="twitter:image" content="images/covers/jamie-street-33oxtOMk6Ac-unsplash.jpg"><meta name="twitter:description" content="A guide on creating a Python-based notification service that integrates with multiple providers."><meta name="viewport" content="width=device-width"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="generator" content="Astro v5.17.3"><!-- Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=G-M3C36GR88F"></script><script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-M3C36GR88F');
+        </script><!-- Google Fonts: Anton (Heading), Bebas Neue (Sub), Inter (Body), JetBrains Mono (Code) --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/_page_.XZvY61kE.css"></head> <body> <!-- Note: We will update the Header component itself next if it has inline styles, but global.css handles most layout now --> <header class="site-header"> <div class="container header-inner"> <a href="/" class="logo">KH</a> <nav class="nav-links"> <a href="/#intro">Intro</a><a href="/#about">About</a><a href="/#works">Works</a><a href="/blog">Blog</a> </nav> </div> </header> <main>   <div class="article-hero reveal"> <div class="hero-bg-slash"></div> <div class="container hero-content"> <div class="article-meta"> 2023.08.17 <span class="meta-divider">//</span> <span class="meta-category">Python</span> </div> <h1 class="article-title"> Designing a Notification Service using Python </h1> <div class="article-tags"> <a href="/tags/Notifications" class="article-tag">
+#Notifications </a><a href="/tags/Design" class="article-tag">
+#Design </a><a href="/tags/Python" class="article-tag">
+#Python </a> </div> </div> </div>  <div class="container reveal"> <article class="prose" style="max-width: 800px; margin: 0 auto; background: var(--bg-color); padding: 2rem 0 5rem 0;"> <p>In today’s digital landscape, a flexible notification service that can send messages via different backend providers is invaluable. By leveraging platforms such as SendGrid for emails, Twilio for SMS, Telegram for messaging, and OneSignal for push notifications, businesses can reach users across a spectrum of communication channels.</p>
+<p>This guide illustrates how to create a Python-based notification service that seamlessly integrates with multiple providers.</p>
+<h2 id="requirements">Requirements:</h2>
+<ul>
+<li>Python 3.x</li>
+<li>SDKs and third-party libraries: <code>requests</code>, <code>sendgrid</code>, <code>twilio</code>, etc.</li>
+</ul>
+<h2 id="designing-the-service">Designing the Service</h2>
+<figure class="featured-image">
+    <img src="images/python/designing-notification-service-python/thumbnails/900x_/class-diagram.png">
+    <figcaption class="featured-image-title">Class Diagram</figcaption>
+</figure>
+<figure class="featured-image">
+    <img src="images/python/designing-notification-service-python/thumbnails/900x_/workflow-diagram.png">
+    <figcaption class="featured-image-title">Workflow Diagram</figcaption>
+</figure>
+<h3 id="base-notification-provider-class">Base Notification Provider Class</h3>
+<p>At the core is an abstract class that offers a basic framework for individual provider integrations.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> BaseNotificationProvider</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> send_notification</span><span style="color:#E1E4E8">(self, recipient, message):</span></span>
+<span class="line"><span style="color:#F97583">        raise</span><span style="color:#79B8FF"> NotImplementedError</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"This method should be implemented by the child class."</span><span style="color:#E1E4E8">)</span></span></code></pre>
+<h2 id="provider-specific-classes">Provider-Specific Classes</h2>
+<p>Concrete classes for each backend provider will inherit from the base class and implement the send_notification method.</p>
+<h3 id="sendgrid">SendGrid</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> sendgrid </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> SendGridAPIClient</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> sendgrid.helpers.mail </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> Mail</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> SendGridNotificationProvider</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">BaseNotificationProvider</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#79B8FF"> __init__</span><span style="color:#E1E4E8">(self, api_key):</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.client </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> SendGridAPIClient(api_key)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> send_notification</span><span style="color:#E1E4E8">(self, recipient, message):</span></span>
+<span class="line"><span style="color:#E1E4E8">        mail </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> Mail(</span><span style="color:#FFAB70">from_email</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">'your_email@example.com'</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">to_emails</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">recipient, </span><span style="color:#FFAB70">subject</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">'Notification'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">                    html_content</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">message)</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.client.send(mail)</span></span></code></pre>
+<h3 id="twilio">Twilio</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> twilio.rest </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> Client</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> TwilioNotificationProvider</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">BaseNotificationProvider</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#79B8FF"> __init__</span><span style="color:#E1E4E8">(self, account_sid, auth_token):</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.client </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> Client(account_sid, auth_token)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> send_notification</span><span style="color:#E1E4E8">(self, recipient, message):</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.client.messages.create(</span><span style="color:#FFAB70">body</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">message, </span><span style="color:#FFAB70">to</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">recipient, </span><span style="color:#FFAB70">from_</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"Your_Twilio_Number"</span><span style="color:#E1E4E8">)</span></span></code></pre>
+<h3 id="telegram">Telegram</h3>
+<p>To interact with Telegram’s Bot API, you can use the python-telegram-bot package.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> telegram</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> TelegramNotificationProvider</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">BaseNotificationProvider</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#79B8FF"> __init__</span><span style="color:#E1E4E8">(self, bot_token):</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.bot </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> telegram.Bot(</span><span style="color:#FFAB70">token</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">bot_token)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> send_notification</span><span style="color:#E1E4E8">(self, chat_id, message):</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.bot.send_message(</span><span style="color:#FFAB70">chat_id</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">chat_id, </span><span style="color:#FFAB70">text</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">message)</span></span></code></pre>
+<h3 id="onesignal">OneSignal</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> requests</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> OneSignalNotificationProvider</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">BaseNotificationProvider</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#79B8FF"> __init__</span><span style="color:#E1E4E8">(self, app_id, api_key):</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.app_id </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> app_id</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.api_key </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> api_key</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> send_notification</span><span style="color:#E1E4E8">(self, recipient, message):</span></span>
+<span class="line"><span style="color:#E1E4E8">        headers </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#9ECBFF">            "Authorization"</span><span style="color:#E1E4E8">: </span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"Basic </span><span style="color:#79B8FF">{self</span><span style="color:#E1E4E8">.api_key</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">            "Content-Type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"application/json"</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">        payload </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#9ECBFF">            "app_id"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">self</span><span style="color:#E1E4E8">.app_id,</span></span>
+<span class="line"><span style="color:#9ECBFF">            "contents"</span><span style="color:#E1E4E8">: {</span><span style="color:#9ECBFF">"en"</span><span style="color:#E1E4E8">: message},</span></span>
+<span class="line"><span style="color:#9ECBFF">            "include_player_ids"</span><span style="color:#E1E4E8">: [recipient]</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">        requests.post(</span><span style="color:#9ECBFF">"https://onesignal.com/api/v1/notifications"</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">headers</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">headers, </span><span style="color:#FFAB70">json</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">payload)</span></span></code></pre>
+<h2 id="managing-notifications-across-providers">Managing Notifications Across Providers</h2>
+<p>For users who have bound multiple providers, the service must send notifications across all these channels.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> UserNotificationService</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#79B8FF"> __init__</span><span style="color:#E1E4E8">(self):</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.notificationProviders </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> []</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> bind_notification_provider</span><span style="color:#E1E4E8">(self, </span><span style="color:#F97583">*</span><span style="color:#E1E4E8">providers):</span></span>
+<span class="line"><span style="color:#9ECBFF">        """Bind a new notification provider to the user."""</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.notificationProviders.extend(</span><span style="color:#79B8FF">list</span><span style="color:#E1E4E8">(providers))</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> send_notification</span><span style="color:#E1E4E8">(self, recipient, message):</span></span>
+<span class="line"><span style="color:#F97583">        for</span><span style="color:#E1E4E8"> provider </span><span style="color:#F97583">in</span><span style="color:#79B8FF"> self</span><span style="color:#E1E4E8">.notificationProviders:</span></span>
+<span class="line"><span style="color:#E1E4E8">            provider.send_notification(recipient, message)</span></span></code></pre>
+<h2 id="usage">Usage</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#E1E4E8">user_service </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> UserNotificationService()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Bind SendGrid, Twilio, Telegram, and OneSignal for a user</span></span>
+<span class="line"><span style="color:#E1E4E8">user_service.bind_notification_provider(</span></span>
+<span class="line"><span style="color:#E1E4E8">    SendGridNotificationProvider(</span><span style="color:#9ECBFF">'YOUR_SENDGRID_API_KEY'</span><span style="color:#E1E4E8">)),</span></span>
+<span class="line"><span style="color:#E1E4E8">TwilioNotificationProvider(</span><span style="color:#9ECBFF">'YOUR_TWILIO_SID'</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">'YOUR_TWILIO_TOKEN'</span><span style="color:#E1E4E8">)),</span></span>
+<span class="line"><span style="color:#E1E4E8">TelegramNotificationProvider(</span><span style="color:#9ECBFF">'YOUR_TELEGRAM_BOT_TOKEN'</span><span style="color:#E1E4E8">)),</span></span>
+<span class="line"><span style="color:#E1E4E8">OneSignalNotificationProvider(</span><span style="color:#9ECBFF">'YOUR_ONESIGNAL_APP_ID'</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">'YOUR_ONESIGNAL_API_KEY'</span><span style="color:#E1E4E8">),</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Send a notification</span></span>
+<span class="line"><span style="color:#E1E4E8">user_service.send_notification(</span><span style="color:#9ECBFF">'recipient@example.com'</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">'Hello from multi-provider notification service!'</span><span style="color:#E1E4E8">)</span></span></code></pre>
+<p>This service will dispatch the given message via all bound providers for that user.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Creating a multi-provider notification service in Python is efficient and streamlined, thanks to Python’s object-oriented features and robust third-party SDKs. With a modular design, this service can easily accommodate additional notification providers in the future.</p> </article> <div style="max-width: 800px; margin: 0 auto 5rem auto; border-top: 2px solid #333; padding-top: 2rem; text-align: center;"> <a href="/blog" style="font-family: var(--font-heading); font-size: 2rem; color: var(--p5-white); text-transform: uppercase;">
+← Back to Log
+</a> </div> </div>  </main> <footer class="site-footer"> <div class="container"> <div class="footer-tagline">NEVER STOP BUILDING</div> <div class="footer-socials"> <a href="https://github.com/pandabb3356" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-icon"> <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg> </a> <!-- Space for future icons (LinkedIn, Twitter, etc.) --> </div> <div class="footer-cr"> <p>&copy; 2026 Ken Huang — All Rights Reserved.</p> <p>Built with <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a></p> </div> </div> </footer> <script type="module">const s=new IntersectionObserver(e=>{e.forEach(r=>{r.isIntersecting&&r.target.classList.add("visible")})},{threshold:.1}),t=()=>{document.querySelectorAll(".reveal").forEach(e=>s.observe(e))};t();</script> </body> </html>

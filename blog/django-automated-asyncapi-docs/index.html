@@ -1,0 +1,187 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><title>Automated AsyncAPI Docs in Django: WebSocket Schemas Like Swagger</title><link rel="canonical" href="https://pandabb3356.github.io/blog/django-automated-asyncapi-docs/"><meta name="description" content="Build Swagger-like AsyncAPI docs for Django WebSockets using decorators, Pydantic schemas, and a live HTML renderer."><meta name="robots" content="index, follow"><meta property="og:title" content="Automated AsyncAPI Docs in Django: WebSocket Schemas Like Swagger"><meta property="og:type" content="website"><meta property="og:image" content="https://images.unsplash.com/photo-1523635050353-f5b60dafa07c?ixid=M3w4NDYzMjZ8MHwxfHNlYXJjaHwyNHx8bWluaW1hbCUyQ3dvcmtzcGFjZXxlbnwwfDB8fHwxNzY2Mjk4NjI4fDA&ixlib=rb-4.1.0&w=1200&h=800&fit=crop"><meta property="og:url" content="https://pandabb3356.github.io/blog/django-automated-asyncapi-docs/"><meta property="og:description" content="Build Swagger-like AsyncAPI docs for Django WebSockets using decorators, Pydantic schemas, and a live HTML renderer."><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Automated AsyncAPI Docs in Django: WebSocket Schemas Like Swagger"><meta name="twitter:image" content="https://images.unsplash.com/photo-1523635050353-f5b60dafa07c?ixid=M3w4NDYzMjZ8MHwxfHNlYXJjaHwyNHx8bWluaW1hbCUyQ3dvcmtzcGFjZXxlbnwwfDB8fHwxNzY2Mjk4NjI4fDA&ixlib=rb-4.1.0&w=1200&h=800&fit=crop"><meta name="twitter:description" content="Build Swagger-like AsyncAPI docs for Django WebSockets using decorators, Pydantic schemas, and a live HTML renderer."><meta name="viewport" content="width=device-width"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="generator" content="Astro v5.17.3"><!-- Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=G-M3C36GR88F"></script><script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-M3C36GR88F');
+        </script><!-- Google Fonts: Anton (Heading), Bebas Neue (Sub), Inter (Body), JetBrains Mono (Code) --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/_page_.XZvY61kE.css"></head> <body> <!-- Note: We will update the Header component itself next if it has inline styles, but global.css handles most layout now --> <header class="site-header"> <div class="container header-inner"> <a href="/" class="logo">KH</a> <nav class="nav-links"> <a href="/#intro">Intro</a><a href="/#about">About</a><a href="/#works">Works</a><a href="/blog">Blog</a> </nav> </div> </header> <main>   <div class="article-hero reveal"> <div class="hero-bg-slash"></div> <div class="container hero-content"> <div class="article-meta"> 2025.12.22 <span class="meta-divider">//</span> <span class="meta-category">Python</span> </div> <h1 class="article-title"> Automated AsyncAPI Docs in Django: WebSocket Schemas Like Swagger </h1> <div class="article-tags"> <a href="/tags/django" class="article-tag">
+#django </a><a href="/tags/asyncapi" class="article-tag">
+#asyncapi </a><a href="/tags/websocket" class="article-tag">
+#websocket </a><a href="/tags/documentation" class="article-tag">
+#documentation </a><a href="/tags/schema" class="article-tag">
+#schema </a><a href="/tags/pydantic" class="article-tag">
+#pydantic </a> </div> </div> </div>  <div class="container reveal"> <article class="prose" style="max-width: 800px; margin: 0 auto; background: var(--bg-color); padding: 2rem 0 5rem 0;"> <p>Swagger-like docs for REST are easy. For WebSockets, it’s usually a README and wishful thinking.</p>
+<p>If you’re building <strong>Django WebSocket APIs</strong>, AsyncAPI is the Swagger equivalent — you just need <strong>automated</strong> generation, not manual YAML.</p>
+<p>This post shows how to <strong>automate AsyncAPI docs in Django</strong> so they feel like Swagger: schema-driven, discoverable, and always in sync with your handlers.</p>
+<p>You’ll end up with:</p>
+<ul>
+<li>A live HTML docs page</li>
+<li>JSON/YAML spec endpoints</li>
+<li>Automatic schema generation tied to your handlers</li>
+</ul>
+<hr>
+<h2 id="requirements-and-whats-optional">Requirements (and what’s optional)</h2>
+<p>You only need three pieces:</p>
+<ul>
+<li><strong>Django</strong> (routing + templates)</li>
+<li><strong>A WebSocket layer</strong> (Channels or your own consumer abstraction)</li>
+<li><strong>AsyncAPI renderer</strong> (official React component)</li>
+</ul>
+<p><strong>Pydantic is optional.</strong> It’s great for validation + JSON Schema, but any schema system works as long as you can emit JSON Schema.</p>
+<hr>
+<h2 id="what-were-automating">What we’re automating</h2>
+<p>We want three things:</p>
+<ol>
+<li><strong>A decorator</strong> to register WebSocket message handlers</li>
+<li><strong>A generator</strong> that produces AsyncAPI JSON/YAML</li>
+<li><strong>A docs page</strong> that renders a live AsyncAPI UI</li>
+</ol>
+<p>The model is simple: annotate handlers with request/response schemas, then <strong>auto-generate docs</strong> from those schemas.</p>
+<hr>
+<h2 id="1-define-message-schemas">1) Define message schemas</h2>
+<p>Use Pydantic (or any schema system) to define payloads. These become AsyncAPI message schemas.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> pydantic </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> BaseModel</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> SubscribeRequest</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">BaseModel</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#E1E4E8">    channel: </span><span style="color:#79B8FF">str</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> PriceUpdate</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">BaseModel</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#E1E4E8">    channel: </span><span style="color:#79B8FF">str</span></span>
+<span class="line"><span style="color:#E1E4E8">    price: </span><span style="color:#79B8FF">float</span></span>
+<span class="line"><span style="color:#E1E4E8">    ts: </span><span style="color:#79B8FF">int</span></span></code></pre>
+<hr>
+<h2 id="2-add-a-decorator--registry">2) Add a decorator + registry</h2>
+<p>This decorator does two jobs:</p>
+<ul>
+<li>validates payloads at runtime</li>
+<li>registers metadata for docs</li>
+</ul>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> functools</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> pydantic </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> BaseModel</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> MessageHandler</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#79B8FF"> __init__</span><span style="color:#E1E4E8">(self, message_type, func, request_schema</span><span style="color:#F97583">=</span><span style="color:#79B8FF">None</span><span style="color:#E1E4E8">, response_schema</span><span style="color:#F97583">=</span><span style="color:#79B8FF">None</span><span style="color:#E1E4E8">, description</span><span style="color:#F97583">=</span><span style="color:#79B8FF">None</span><span style="color:#E1E4E8">, tags</span><span style="color:#F97583">=</span><span style="color:#79B8FF">None</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.message_type </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> message_type</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.func </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> func</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.request_schema </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> request_schema</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.response_schema </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> response_schema</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.description </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> description </span><span style="color:#F97583">or</span><span style="color:#E1E4E8"> (func.</span><span style="color:#79B8FF">__doc__</span><span style="color:#F97583"> or</span><span style="color:#9ECBFF"> ""</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.tags </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> tags </span><span style="color:#F97583">or</span><span style="color:#E1E4E8"> []</span></span>
+<span class="line"><span style="color:#E1E4E8">        functools.update_wrapper(</span><span style="color:#79B8FF">self</span><span style="color:#E1E4E8">, func)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> AsyncAPIRegistry</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    handlers </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> {}  </span><span style="color:#6A737D"># consumer_name -> message_type -> MessageHandler</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">    @</span><span style="color:#79B8FF">classmethod</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> register_handler</span><span style="color:#E1E4E8">(cls, consumer, message_type, handler):</span></span>
+<span class="line"><span style="color:#79B8FF">        cls</span><span style="color:#E1E4E8">.handlers.setdefault(consumer, {})[message_type] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> handler</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> message_handler</span><span style="color:#E1E4E8">(message_type, request_schema</span><span style="color:#F97583">=</span><span style="color:#79B8FF">None</span><span style="color:#E1E4E8">, response_schema</span><span style="color:#F97583">=</span><span style="color:#79B8FF">None</span><span style="color:#E1E4E8">, description</span><span style="color:#F97583">=</span><span style="color:#79B8FF">None</span><span style="color:#E1E4E8">, tags</span><span style="color:#F97583">=</span><span style="color:#79B8FF">None</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> decorator</span><span style="color:#E1E4E8">(func):</span></span>
+<span class="line"><span style="color:#E1E4E8">        handler </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> MessageHandler(message_type, func, request_schema, response_schema, description, tags)</span></span>
+<span class="line"><span style="color:#E1E4E8">        handler._is_message_handler </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> True</span></span>
+<span class="line"><span style="color:#E1E4E8">        handler._message_type </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> message_type</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> handler</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> decorator</span></span></code></pre>
+<p>You can also add a <code>@register_consumer</code> class decorator to auto-register all handlers in a consumer class.</p>
+<hr>
+<h2 id="3-generate-asyncapi-from-the-registry">3) Generate AsyncAPI from the registry</h2>
+<p>At doc time, scan all registered handlers and build an AsyncAPI spec:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> urllib.parse </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> urlparse</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> AsyncAPIGenerator</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#B392F0">    @</span><span style="color:#79B8FF">classmethod</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> generate_spec</span><span style="color:#E1E4E8">(cls, title, version, description, server_url):</span></span>
+<span class="line"><span style="color:#E1E4E8">        parsed </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> urlparse(server_url)</span></span>
+<span class="line"><span style="color:#E1E4E8">        host </span><span style="color:#F97583">=</span><span style="color:#F97583"> f</span><span style="color:#9ECBFF">"</span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">parsed.hostname</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">:</span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">parsed.port</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span><span style="color:#F97583"> if</span><span style="color:#E1E4E8"> parsed.port </span><span style="color:#F97583">else</span><span style="color:#E1E4E8"> parsed.hostname</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">        spec </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#9ECBFF">            "asyncapi"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"3.0.0"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">            "info"</span><span style="color:#E1E4E8">: {</span><span style="color:#9ECBFF">"title"</span><span style="color:#E1E4E8">: title, </span><span style="color:#9ECBFF">"version"</span><span style="color:#E1E4E8">: version, </span><span style="color:#9ECBFF">"description"</span><span style="color:#E1E4E8">: description},</span></span>
+<span class="line"><span style="color:#9ECBFF">            "servers"</span><span style="color:#E1E4E8">: {</span><span style="color:#9ECBFF">"production"</span><span style="color:#E1E4E8">: {</span><span style="color:#9ECBFF">"host"</span><span style="color:#E1E4E8">: host, </span><span style="color:#9ECBFF">"protocol"</span><span style="color:#E1E4E8">: parsed.scheme </span><span style="color:#F97583">or</span><span style="color:#9ECBFF"> "wss"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"pathname"</span><span style="color:#E1E4E8">: parsed.path </span><span style="color:#F97583">or</span><span style="color:#9ECBFF"> "/"</span><span style="color:#E1E4E8">}},</span></span>
+<span class="line"><span style="color:#9ECBFF">            "channels"</span><span style="color:#E1E4E8">: {},</span></span>
+<span class="line"><span style="color:#9ECBFF">            "operations"</span><span style="color:#E1E4E8">: {},</span></span>
+<span class="line"><span style="color:#9ECBFF">            "components"</span><span style="color:#E1E4E8">: {</span><span style="color:#9ECBFF">"schemas"</span><span style="color:#E1E4E8">: {}, </span><span style="color:#9ECBFF">"messages"</span><span style="color:#E1E4E8">: {}},</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">        for</span><span style="color:#E1E4E8"> consumer_name, handlers </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> AsyncAPIRegistry.handlers.items():</span></span>
+<span class="line"><span style="color:#E1E4E8">            channel </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> spec[</span><span style="color:#9ECBFF">"channels"</span><span style="color:#E1E4E8">].setdefault(consumer_name, {</span></span>
+<span class="line"><span style="color:#9ECBFF">                "address"</span><span style="color:#E1E4E8">: </span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"/</span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">consumer_name</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">                "description"</span><span style="color:#E1E4E8">: </span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"</span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">consumer_name</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF"> WebSocket channel"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">                "messages"</span><span style="color:#E1E4E8">: {},</span></span>
+<span class="line"><span style="color:#E1E4E8">            })</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">            for</span><span style="color:#E1E4E8"> message_type, handler </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> handlers.items():</span></span>
+<span class="line"><span style="color:#F97583">                if</span><span style="color:#E1E4E8"> handler.request_schema:</span></span>
+<span class="line"><span style="color:#79B8FF">                    cls</span><span style="color:#E1E4E8">._add_schema(spec, handler.request_schema, handler)</span></span>
+<span class="line"><span style="color:#E1E4E8">                    channel[</span><span style="color:#9ECBFF">"messages"</span><span style="color:#E1E4E8">][handler.request_schema.</span><span style="color:#79B8FF">__name__</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#9ECBFF">                        "$ref"</span><span style="color:#E1E4E8">: </span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"#/components/messages/</span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">handler.request_schema.</span><span style="color:#79B8FF">__name__}</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#E1E4E8">                    }</span></span>
+<span class="line"><span style="color:#F97583">                if</span><span style="color:#E1E4E8"> handler.response_schema:</span></span>
+<span class="line"><span style="color:#79B8FF">                    cls</span><span style="color:#E1E4E8">._add_schema(spec, handler.response_schema, handler)</span></span>
+<span class="line"><span style="color:#E1E4E8">                    channel[</span><span style="color:#9ECBFF">"messages"</span><span style="color:#E1E4E8">][handler.response_schema.</span><span style="color:#79B8FF">__name__</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#9ECBFF">                        "$ref"</span><span style="color:#E1E4E8">: </span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"#/components/messages/</span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">handler.response_schema.</span><span style="color:#79B8FF">__name__}</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#E1E4E8">                    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> spec</span></span></code></pre>
+<p>Then convert to YAML or JSON as needed.</p>
+<hr>
+<h2 id="4-django-views-for-html--json--yaml">4) Django views for HTML / JSON / YAML</h2>
+<p>Expose three endpoints:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> django.http </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> HttpResponse</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> django.template.loader </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> render_to_string</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> json</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> asyncapi_html</span><span style="color:#E1E4E8">(request):</span></span>
+<span class="line"><span style="color:#E1E4E8">    spec </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> AsyncAPIGenerator.generate_spec(</span></span>
+<span class="line"><span style="color:#FFAB70">        title</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"WebSocket API"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">        version</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"1.0.0"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">        description</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"Realtime API"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">        server_url</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">request.build_absolute_uri(</span><span style="color:#9ECBFF">"/ws"</span><span style="color:#E1E4E8">),</span></span>
+<span class="line"><span style="color:#E1E4E8">    )</span></span>
+<span class="line"><span style="color:#E1E4E8">    html </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> render_to_string(</span><span style="color:#9ECBFF">"websocket/asyncapi.html"</span><span style="color:#E1E4E8">, {</span><span style="color:#9ECBFF">"spec_json"</span><span style="color:#E1E4E8">: json.dumps(spec), </span><span style="color:#9ECBFF">"title"</span><span style="color:#E1E4E8">: spec[</span><span style="color:#9ECBFF">"info"</span><span style="color:#E1E4E8">][</span><span style="color:#9ECBFF">"title"</span><span style="color:#E1E4E8">]})</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> HttpResponse(html)</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> asyncapi_json</span><span style="color:#E1E4E8">(request):</span></span>
+<span class="line"><span style="color:#E1E4E8">    spec </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> AsyncAPIGenerator.generate_spec(</span><span style="color:#79B8FF">...</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> HttpResponse(json.dumps(spec, </span><span style="color:#FFAB70">indent</span><span style="color:#F97583">=</span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">), </span><span style="color:#FFAB70">content_type</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"application/json"</span><span style="color:#E1E4E8">)</span></span></code></pre>
+<hr>
+<h2 id="5-render-a-swagger-like-ui">5) Render a Swagger-like UI</h2>
+<p>Use the official AsyncAPI React component to render docs in HTML:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="html"><code><span class="line"><span style="color:#E1E4E8">&#x3C;</span><span style="color:#85E89D">link</span><span style="color:#B392F0"> rel</span><span style="color:#E1E4E8">=</span><span style="color:#9ECBFF">"stylesheet"</span><span style="color:#B392F0"> href</span><span style="color:#E1E4E8">=</span><span style="color:#9ECBFF">"https://unpkg.com/@asyncapi/react-component@latest/styles/default.min.css"</span><span style="color:#E1E4E8">></span></span>
+<span class="line"><span style="color:#E1E4E8">&#x3C;</span><span style="color:#85E89D">script</span><span style="color:#B392F0"> src</span><span style="color:#E1E4E8">=</span><span style="color:#9ECBFF">"https://unpkg.com/@asyncapi/react-component@latest/browser/standalone/index.js"</span><span style="color:#E1E4E8">>&#x3C;/</span><span style="color:#85E89D">script</span><span style="color:#E1E4E8">></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">&#x3C;</span><span style="color:#85E89D">div</span><span style="color:#B392F0"> id</span><span style="color:#E1E4E8">=</span><span style="color:#9ECBFF">"asyncapi"</span><span style="color:#E1E4E8">>&#x3C;/</span><span style="color:#85E89D">div</span><span style="color:#E1E4E8">></span></span>
+<span class="line"><span style="color:#E1E4E8">&#x3C;</span><span style="color:#85E89D">script</span><span style="color:#E1E4E8">></span></span>
+<span class="line"><span style="color:#E1E4E8">  AsyncApiStandalone.</span><span style="color:#B392F0">render</span><span style="color:#E1E4E8">({</span></span>
+<span class="line"><span style="color:#E1E4E8">    schema: {{ spec_json</span><span style="color:#F97583">|</span><span style="color:#E1E4E8">safe }},</span></span>
+<span class="line"><span style="color:#E1E4E8">    config: { show: { sidebar: </span><span style="color:#79B8FF">true</span><span style="color:#E1E4E8"> } }</span></span>
+<span class="line"><span style="color:#E1E4E8">  }, document.</span><span style="color:#B392F0">getElementById</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'asyncapi'</span><span style="color:#E1E4E8">));</span></span>
+<span class="line"><span style="color:#E1E4E8">&#x3C;/</span><span style="color:#85E89D">script</span><span style="color:#E1E4E8">></span></span></code></pre>
+<p>This gives you a fully interactive UI with channels, messages, and schemas.</p>
+<hr>
+<h2 id="practical-tips">Practical tips</h2>
+<ul>
+<li><strong>Cache the spec</strong> in production (15 min is plenty)</li>
+<li><strong>Add tags</strong> in the decorator to group operations</li>
+<li><strong>Use examples</strong> in Pydantic models to improve docs</li>
+<li><strong>Keep message names stable</strong> (clients will depend on them)</li>
+</ul>
+<hr>
+<h2 id="why-this-automation-works">Why this automation works</h2>
+<p>AsyncAPI is the WebSocket equivalent of Swagger. The missing piece is <strong>automated generation from code</strong>. With a registry + schemas, the docs stay accurate with almost zero manual maintenance.</p>
+<hr>
+<h2 id="final-takeaway">Final takeaway</h2>
+<p>If you already use Django for WebSockets, this is the minimum viable way to get <strong>Swagger-grade AsyncAPI docs</strong> without hand-editing YAML. Once the registry is in place, your docs stay in sync as the code evolves automatically.</p>
+<hr>
+<h2 id="next-steps">Next steps</h2>
+<ul>
+<li>Add auth requirements per channel</li>
+<li>Expose both AsyncAPI 2.6 and 3.0</li>
+<li>Generate specs as part of CI to detect breaking changes</li>
+</ul>
+<p>If you already use Django for WebSockets, this is the simplest path to Swagger-grade docs.</p> </article> <div style="max-width: 800px; margin: 0 auto 5rem auto; border-top: 2px solid #333; padding-top: 2rem; text-align: center;"> <a href="/blog" style="font-family: var(--font-heading); font-size: 2rem; color: var(--p5-white); text-transform: uppercase;">
+← Back to Log
+</a> </div> </div>  </main> <footer class="site-footer"> <div class="container"> <div class="footer-tagline">NEVER STOP BUILDING</div> <div class="footer-socials"> <a href="https://github.com/pandabb3356" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-icon"> <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg> </a> <!-- Space for future icons (LinkedIn, Twitter, etc.) --> </div> <div class="footer-cr"> <p>&copy; 2026 Ken Huang — All Rights Reserved.</p> <p>Built with <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a></p> </div> </div> </footer> <script type="module">const s=new IntersectionObserver(e=>{e.forEach(r=>{r.isIntersecting&&r.target.classList.add("visible")})},{threshold:.1}),t=()=>{document.querySelectorAll(".reveal").forEach(e=>s.observe(e))};t();</script> </body> </html>

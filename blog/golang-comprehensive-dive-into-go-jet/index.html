@@ -1,0 +1,81 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><title>A Comprehensive Dive into `go-jet`</title><link rel="canonical" href="https://pandabb3356.github.io/blog/golang-comprehensive-dive-into-go-jet/"><meta name="description" content="An in-depth exploration of go-jet, the powerful SQL builder for Go, and its pivotal role in efficient database management."><meta name="robots" content="index, follow"><meta property="og:title" content="A Comprehensive Dive into `go-jet`"><meta property="og:type" content="website"><meta property="og:image" content="images/covers/sunder-muthukumaran-n7eJHQwefeI-unsplash.jpg"><meta property="og:url" content="https://pandabb3356.github.io/blog/golang-comprehensive-dive-into-go-jet/"><meta property="og:description" content="An in-depth exploration of go-jet, the powerful SQL builder for Go, and its pivotal role in efficient database management."><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="A Comprehensive Dive into `go-jet`"><meta name="twitter:image" content="images/covers/sunder-muthukumaran-n7eJHQwefeI-unsplash.jpg"><meta name="twitter:description" content="An in-depth exploration of go-jet, the powerful SQL builder for Go, and its pivotal role in efficient database management."><meta name="viewport" content="width=device-width"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="generator" content="Astro v5.17.3"><!-- Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=G-M3C36GR88F"></script><script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-M3C36GR88F');
+        </script><!-- Google Fonts: Anton (Heading), Bebas Neue (Sub), Inter (Body), JetBrains Mono (Code) --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/_page_.XZvY61kE.css"></head> <body> <!-- Note: We will update the Header component itself next if it has inline styles, but global.css handles most layout now --> <header class="site-header"> <div class="container header-inner"> <a href="/" class="logo">KH</a> <nav class="nav-links"> <a href="/#intro">Intro</a><a href="/#about">About</a><a href="/#works">Works</a><a href="/blog">Blog</a> </nav> </div> </header> <main>   <div class="article-hero reveal"> <div class="hero-bg-slash"></div> <div class="container hero-content"> <div class="article-meta"> 2023.08.21 <span class="meta-divider">//</span> <span class="meta-category">Golang</span> </div> <h1 class="article-title"> A Comprehensive Dive into `go-jet` </h1> <div class="article-tags"> <a href="/tags/golang" class="article-tag">
+#golang </a><a href="/tags/go-jet" class="article-tag">
+#go-jet </a><a href="/tags/databases" class="article-tag">
+#databases </a><a href="/tags/SQL" class="article-tag">
+#SQL </a><a href="/tags/ORM" class="article-tag">
+#ORM </a> </div> </div> </div>  <div class="container reveal"> <article class="prose" style="max-width: 800px; margin: 0 auto; background: var(--bg-color); padding: 2rem 0 5rem 0;"> <p>When it comes to working with databases in Go, several packages promise efficiency and flexibility. Yet, not many combine the raw prowess of SQL with Go’s type-safe environment. Enter <code>go-jet</code>.</p>
+<h2 id="what-sets-go-jet-apart">What Sets <code>go-jet</code> Apart?</h2>
+<p>Most Go developers face a conundrum: The convenience of ORMs or the power of raw SQL? <code>go-jet</code> doesn’t make you choose. It integrates the best of both worlds:</p>
+<ol>
+<li>
+<p><strong>Type Safety</strong>: No more runtime SQL errors. SQL errors, a common pain point, get caught during compile-time, ensuring robust applications.</p>
+</li>
+<li>
+<p><strong>Expressiveness</strong>: The syntax, being highly expressive, doesn’t feel alien to Go developers. This means writing SQL that’s readable, intuitive, and Go-ish.</p>
+</li>
+<li>
+<p><strong>Performance</strong>: Abstractions usually come at a cost, but <code>go-jet</code> strives to minimize overheads, ensuring applications run efficiently.</p>
+</li>
+</ol>
+<h2 id="deep-dive-into-go-jet-syntax-and-features">Deep Dive into <code>go-jet</code> Syntax and Features</h2>
+<p><code>go-jet</code> has a treasure trove of features and functionalities. Here’s a breakdown:</p>
+<h3 id="select-queries">SELECT Queries</h3>
+<p><code>go-jet</code> excels at making SELECT queries intuitive:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">var</span><span style="color:#E1E4E8"> users []</span><span style="color:#B392F0">Users</span></span>
+<span class="line"><span style="color:#E1E4E8">err </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> Users.</span><span style="color:#B392F0">SELECT</span><span style="color:#E1E4E8">(Users.AllColumns).</span><span style="color:#B392F0">FROM</span><span style="color:#E1E4E8">(Users).</span><span style="color:#B392F0">WHERE</span><span style="color:#E1E4E8">(Users.Age.</span><span style="color:#B392F0">GT</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">Int</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">18</span><span style="color:#E1E4E8">))).</span><span style="color:#B392F0">Query</span><span style="color:#E1E4E8">(db, </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">users)</span></span></code></pre>
+<p>Notice the chaining and the usage of methods like <code>GT</code> (Greater Than). This makes the code readable, yet strictly type-checked.</p>
+<h3 id="insert-update-and-delete">INSERT, UPDATE, and DELETE</h3>
+<p>DML operations are straightforward and flexible:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// Insert</span></span>
+<span class="line"><span style="color:#E1E4E8">insertStmt </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> Users.</span><span style="color:#B392F0">INSERT</span><span style="color:#E1E4E8">(Users.Name, Users.Age).</span><span style="color:#B392F0">VALUES</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Alice"</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">28</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">_, err </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> insertStmt.</span><span style="color:#B392F0">Exec</span><span style="color:#E1E4E8">(db)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Update</span></span>
+<span class="line"><span style="color:#E1E4E8">updateStmt </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> Users.</span><span style="color:#B392F0">UPDATE</span><span style="color:#E1E4E8">().</span><span style="color:#B392F0">SET</span><span style="color:#E1E4E8">(Users.Name.</span><span style="color:#B392F0">SET</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">String</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Bob"</span><span style="color:#E1E4E8">))).</span><span style="color:#B392F0">WHERE</span><span style="color:#E1E4E8">(Users.ID.</span><span style="color:#B392F0">EQ</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">Int</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">)))</span></span>
+<span class="line"><span style="color:#E1E4E8">_, err </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> updateStmt.</span><span style="color:#B392F0">Exec</span><span style="color:#E1E4E8">(db)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Delete</span></span>
+<span class="line"><span style="color:#E1E4E8">deleteStmt </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> Users.</span><span style="color:#B392F0">DELETE</span><span style="color:#E1E4E8">().</span><span style="color:#B392F0">WHERE</span><span style="color:#E1E4E8">(Users.Age.</span><span style="color:#B392F0">LT</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">Int</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">18</span><span style="color:#E1E4E8">)))</span></span>
+<span class="line"><span style="color:#E1E4E8">_, err </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> deleteStmt.</span><span style="color:#B392F0">Exec</span><span style="color:#E1E4E8">(db)</span></span></code></pre>
+<h3 id="joins-aggregations-and-more">Joins, Aggregations, and More</h3>
+<p><code>go-jet</code> is not limited to simple CRUD operations:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// Join operations</span></span>
+<span class="line"><span style="color:#E1E4E8">joinQuery </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> Orders.</span></span>
+<span class="line"><span style="color:#B392F0">    INNER_JOIN</span><span style="color:#E1E4E8">(Customers, Orders.CustomerID.</span><span style="color:#B392F0">EQ</span><span style="color:#E1E4E8">(Customers.ID)).</span></span>
+<span class="line"><span style="color:#B392F0">    SELECT</span><span style="color:#E1E4E8">(Orders.AllColumns, Customers.AllColumns).</span></span>
+<span class="line"><span style="color:#B392F0">    WHERE</span><span style="color:#E1E4E8">(Customers.Country.</span><span style="color:#B392F0">EQ</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">String</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"USA"</span><span style="color:#E1E4E8">)))</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Aggregation</span></span>
+<span class="line"><span style="color:#E1E4E8">countQuery </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> Orders.</span></span>
+<span class="line"><span style="color:#B392F0">    SELECT</span><span style="color:#E1E4E8">(Orders.CustomerID, </span><span style="color:#B392F0">COUNT</span><span style="color:#E1E4E8">(Orders.ID).</span><span style="color:#B392F0">AS</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"TotalOrders"</span><span style="color:#E1E4E8">)).</span></span>
+<span class="line"><span style="color:#B392F0">    GROUP_BY</span><span style="color:#E1E4E8">(Orders.CustomerID)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Complex conditions</span></span>
+<span class="line"><span style="color:#E1E4E8">complexCondition </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> Orders.ShippedDate.</span><span style="color:#B392F0">IS_NOT_NULL</span><span style="color:#E1E4E8">().</span><span style="color:#B392F0">AND</span><span style="color:#E1E4E8">(Orders.Freight.</span><span style="color:#B392F0">GT</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">Float</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">50</span><span style="color:#E1E4E8">)))</span></span></code></pre>
+<p>These examples merely scratch the surface. With subqueries, UNION operations, transactions, and more, <code>go-jet</code> offers a comprehensive toolkit for database operations in Go.</p>
+<h2 id="real-world-usage-when-should-you-opt-for-go-jet">Real-world Usage: When Should You Opt for <code>go-jet</code>?</h2>
+<p>The value of any library is its applicability in real-world scenarios. For <code>go-jet</code>:</p>
+<ul>
+<li>
+<p><strong>Large-scale applications</strong>: With increasing complexity, type-safety becomes invaluable. <code>go-jet</code> minimizes runtime errors, ensuring large-scale applications remain robust.</p>
+</li>
+<li>
+<p><strong>Migration from another ORM</strong>: If you’re coming from a less type-safe environment and want to leverage Go’s type safety, <code>go-jet</code> serves as an excellent bridge.</p>
+</li>
+<li>
+<p><strong>When raw SQL and ORM need to coexist</strong>: Not all queries fit the ORM mold. <code>go-jet</code> provides the flexibility of raw SQL alongside ORM-style operations.</p>
+</li>
+</ul>
+<h2 id="concluding-thoughts">Concluding Thoughts</h2>
+<p>Databases lie at the heart of most applications. While Go offers built-in tools for database operations, <code>go-jet</code> augments this experience. It balances raw SQL’s power with ORM convenience, all wrapped up in a type-safe environment. As Go’s ecosystem continues to flourish, tools like <code>go-jet</code> ensure that database operations remain streamlined and efficient.</p>
+<h2 id="reference">Reference</h2>
+<ul>
+<li><a href="https://github.com/go-jet/jet">github.com/go-jet/jet</a></li>
+</ul> </article> <div style="max-width: 800px; margin: 0 auto 5rem auto; border-top: 2px solid #333; padding-top: 2rem; text-align: center;"> <a href="/blog" style="font-family: var(--font-heading); font-size: 2rem; color: var(--p5-white); text-transform: uppercase;">
+← Back to Log
+</a> </div> </div>  </main> <footer class="site-footer"> <div class="container"> <div class="footer-tagline">NEVER STOP BUILDING</div> <div class="footer-socials"> <a href="https://github.com/pandabb3356" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-icon"> <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg> </a> <!-- Space for future icons (LinkedIn, Twitter, etc.) --> </div> <div class="footer-cr"> <p>&copy; 2026 Ken Huang — All Rights Reserved.</p> <p>Built with <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a></p> </div> </div> </footer> <script type="module">const s=new IntersectionObserver(e=>{e.forEach(r=>{r.isIntersecting&&r.target.classList.add("visible")})},{threshold:.1}),t=()=>{document.querySelectorAll(".reveal").forEach(e=>s.observe(e))};t();</script> </body> </html>

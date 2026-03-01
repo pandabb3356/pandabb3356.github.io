@@ -1,0 +1,328 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><title>Caching Systems (Part 1): Layers, Strategies, and Failure Modes</title><link rel="canonical" href="https://pandabb3356.github.io/blog/caching-systems-part-1-layers-strategies-failure-modes/"><meta name="description" content="Part 1 introduces cache layers, strategies, and failure modes so you can design caches you can trust."><meta name="robots" content="index, follow"><meta property="og:title" content="Caching Systems (Part 1): Layers, Strategies, and Failure Modes"><meta property="og:type" content="website"><meta property="og:image" content="https://images.unsplash.com/photo-1565925250506-2562533338b2?ixid=M3w4NDYzMjZ8MHwxfHNlYXJjaHwxN3x8bWluaW1hbCUyQ3dvcmtzcGFjZXxlbnwwfDB8fHwxNzY2Mjk4NjI4fDA&ixlib=rb-4.1.0&w=1200&h=800&fit=crop"><meta property="og:url" content="https://pandabb3356.github.io/blog/caching-systems-part-1-layers-strategies-failure-modes/"><meta property="og:description" content="Part 1 introduces cache layers, strategies, and failure modes so you can design caches you can trust."><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Caching Systems (Part 1): Layers, Strategies, and Failure Modes"><meta name="twitter:image" content="https://images.unsplash.com/photo-1565925250506-2562533338b2?ixid=M3w4NDYzMjZ8MHwxfHNlYXJjaHwxN3x8bWluaW1hbCUyQ3dvcmtzcGFjZXxlbnwwfDB8fHwxNzY2Mjk4NjI4fDA&ixlib=rb-4.1.0&w=1200&h=800&fit=crop"><meta name="twitter:description" content="Part 1 introduces cache layers, strategies, and failure modes so you can design caches you can trust."><meta name="viewport" content="width=device-width"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="generator" content="Astro v5.17.3"><!-- Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=G-M3C36GR88F"></script><script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-M3C36GR88F');
+        </script><!-- Google Fonts: Anton (Heading), Bebas Neue (Sub), Inter (Body), JetBrains Mono (Code) --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/_page_.XZvY61kE.css"></head> <body> <!-- Note: We will update the Header component itself next if it has inline styles, but global.css handles most layout now --> <header class="site-header"> <div class="container header-inner"> <a href="/" class="logo">KH</a> <nav class="nav-links"> <a href="/#intro">Intro</a><a href="/#about">About</a><a href="/#works">Works</a><a href="/blog">Blog</a> </nav> </div> </header> <main>   <div class="article-hero reveal"> <div class="hero-bg-slash"></div> <div class="container hero-content"> <div class="article-meta"> 2025.12.21 <span class="meta-divider">//</span> <span class="meta-category">Architecture</span> </div> <h1 class="article-title"> Caching Systems (Part 1): Layers, Strategies, and Failure Modes </h1> <div class="article-tags"> <a href="/tags/cache" class="article-tag">
+#cache </a><a href="/tags/caching" class="article-tag">
+#caching </a><a href="/tags/system-design" class="article-tag">
+#system-design </a><a href="/tags/performance" class="article-tag">
+#performance </a><a href="/tags/reliability" class="article-tag">
+#reliability </a> </div> </div> </div>  <div class="container reveal"> <article class="prose" style="max-width: 800px; margin: 0 auto; background: var(--bg-color); padding: 2rem 0 5rem 0;"> <p>Caching is one of the highest-leverage tools in backend engineering: it can turn expensive work into cheap work, flatten latency spikes, and reduce infrastructure cost. It can also quietly introduce correctness bugs, inconsistent user experiences, and operational incidents.</p>
+<p>This article is not a “use Redis” tutorial. It is a practical deep dive into how caching works <strong>as a system</strong>—across layers, time, and failure modes—so you can design caches you can actually trust.</p>
+<hr>
+<h2 id="what-caching-really-is">What Caching Really Is</h2>
+<p>A cache is a <strong>time-bounded copy</strong> of data or computation that trades one resource for another:</p>
+<ul>
+<li>Trade CPU / database I/O for memory</li>
+<li>Trade network round trips for locality</li>
+<li>Trade strict freshness for speed</li>
+</ul>
+<p>Every cache makes an implicit promise:</p>
+<blockquote>
+<p>“This value is probably good enough until time <em>T</em> or until event <em>E</em>.”</p>
+</blockquote>
+<p>You are not just choosing a technology. You are choosing <strong>a consistency model</strong>.</p>
+<hr>
+<h2 id="the-caching-stack-where-caches-live">The Caching Stack: Where Caches Live</h2>
+<p>Most production systems have multiple caches stacked on top of each other. Understanding them as a pipeline helps you reason about behavior.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Client</span></span>
+<span class="line"><span>  │</span></span>
+<span class="line"><span>  ▼</span></span>
+<span class="line"><span>[ Browser Cache ]</span></span>
+<span class="line"><span>  │</span></span>
+<span class="line"><span>  ▼</span></span>
+<span class="line"><span>[ CDN / Edge Cache ]</span></span>
+<span class="line"><span>  │</span></span>
+<span class="line"><span>  ▼</span></span>
+<span class="line"><span>[ Reverse Proxy Cache ]   (Nginx / Varnish)</span></span>
+<span class="line"><span>  │</span></span>
+<span class="line"><span>  ▼</span></span>
+<span class="line"><span>[ Application Server ]</span></span>
+<span class="line"><span>  │    ├─ Request-scope Cache</span></span>
+<span class="line"><span>  │    ├─ In-process Cache</span></span>
+<span class="line"><span>  │    └─ Shared Server Cache (Redis / Memcached)</span></span>
+<span class="line"><span>  │</span></span>
+<span class="line"><span>  ▼</span></span>
+<span class="line"><span>[ Database ]</span></span>
+<span class="line"><span>  │    ├─ Query / Plan Cache</span></span>
+<span class="line"><span>  │    └─ Buffer / Page Cache</span></span></code></pre>
+<p>Think of caching as <strong>progressively closer copies</strong> of data and computation.</p>
+<hr>
+<h3 id="1-request-scope-cache-per-request">1) Request-scope cache (per-request)</h3>
+<p>This cache lives only for the lifetime of a single request.</p>
+<p>Examples:</p>
+<ul>
+<li>Memoization inside a request handler</li>
+<li>Django <code>cached_property</code></li>
+<li>ORM identity maps</li>
+<li>GraphQL DataLoader-style batching</li>
+</ul>
+<p>Why it matters:</p>
+<ul>
+<li>Eliminates duplicate work inside one request</li>
+<li>Collapses N+1 query patterns</li>
+</ul>
+<p>Properties:</p>
+<ul>
+<li>No invalidation needed</li>
+<li>Zero consistency risk</li>
+<li>Often the highest ROI cache</li>
+</ul>
+<hr>
+<h3 id="2-in-process-server-cache">2) In-process server cache</h3>
+<p>Cached in application memory.</p>
+<p>Examples:</p>
+<ul>
+<li>LRU caches</li>
+<li>Module-level dictionaries</li>
+<li>Framework-level local caches</li>
+</ul>
+<p>Pros:</p>
+<ul>
+<li>Extremely fast (no network)</li>
+<li>Simple mental model</li>
+</ul>
+<p>Cons:</p>
+<ul>
+<li>Not shared across instances</li>
+<li>Evicted on deploy or restart</li>
+</ul>
+<p>Best used for:</p>
+<ul>
+<li>Configuration</li>
+<li>Feature flags</li>
+<li>Pure, deterministic computations</li>
+</ul>
+<hr>
+<h3 id="3-shared-server-side-cache-redis--memcached">3) Shared server-side cache (Redis / Memcached)</h3>
+<p>This is the classic backend cache layer.</p>
+<p>Characteristics:</p>
+<ul>
+<li>Shared across instances</li>
+<li>Network hop required</li>
+<li>Centralized invalidation point</li>
+</ul>
+<p>Common responsibilities:</p>
+<ul>
+<li>Data caching (objects, query results)</li>
+<li>Computation caching</li>
+<li>Coordination primitives (locks, rate limits)</li>
+</ul>
+<p>Design requirement:</p>
+<ul>
+<li>Cache failure must degrade gracefully</li>
+</ul>
+<hr>
+<h3 id="4-reverse-proxy-cache">4) Reverse proxy cache</h3>
+<p>Sits in front of application servers.</p>
+<p>Effective when:</p>
+<ul>
+<li>Responses are identical across users</li>
+<li>Authentication is handled upstream</li>
+<li>You want to absorb traffic spikes</li>
+</ul>
+<p>Trade-offs:</p>
+<ul>
+<li>Limited visibility into per-user context</li>
+<li>Invalidation can be coarse-grained</li>
+</ul>
+<hr>
+<h3 id="5-database-internal-caches">5) Database-internal caches</h3>
+<p>Always present, often forgotten.</p>
+<p>Includes:</p>
+<ul>
+<li>Buffer pools</li>
+<li>Page cache</li>
+<li>Query / execution plan caches</li>
+</ul>
+<p>Important implication:</p>
+<blockquote>
+<p>You may already benefit from caching even without Redis.</p>
+</blockquote>
+<p>In many cases, fixing queries outperforms adding a new cache layer.</p>
+<p><strong>Key idea:</strong> you cannot reason about caching by looking at Redis alone. Your system already caches in multiple places.</p>
+<hr>
+<h2 id="what-should-be-cached">What Should Be Cached?</h2>
+<p>A useful way to decide is to categorize what you want to cache:</p>
+<h3 id="a-content-caching-responses">A) Content caching (responses)</h3>
+<p>Cache the full HTTP response.</p>
+<ul>
+<li>Fastest end-to-end</li>
+<li>Best for read-heavy endpoints</li>
+<li>Requires careful consideration of auth and personalization</li>
+</ul>
+<h3 id="b-data-caching-objects-query-results">B) Data caching (objects, query results)</h3>
+<p>Cache the underlying data representation.</p>
+<ul>
+<li>More flexible</li>
+<li>Can be shared across multiple endpoints</li>
+<li>Usually requires more invalidation logic</li>
+</ul>
+<h3 id="c-computation-caching-derived-results">C) Computation caching (derived results)</h3>
+<p>Cache expensive computations.</p>
+<ul>
+<li>Ranking, aggregation, recommendations, reports</li>
+<li>Often benefits most from “stale-while-revalidate” patterns</li>
+</ul>
+<h3 id="d-negative-caching">D) Negative caching</h3>
+<p>Cache “nothing here.”</p>
+<ul>
+<li>404s, empty results, permission-denied checks</li>
+<li>Prevents repeated expensive misses</li>
+<li>Must be used carefully (avoid caching temporary failures)</li>
+</ul>
+<hr>
+<h2 id="ttl-is-not-invalidation">TTL Is Not Invalidation</h2>
+<p>TTL (time-to-live) is the most common caching tool because it’s easy:</p>
+<ul>
+<li>Put value in cache for 60 seconds</li>
+<li>Recompute after it expires</li>
+</ul>
+<p>But TTL is <strong>not invalidation</strong>. It is a bounded staleness guarantee.</p>
+<p>Use TTL when:</p>
+<ul>
+<li>Data changes frequently, and you can tolerate being “a bit behind”</li>
+<li>Exact freshness is not critical (feeds, counts, trending lists)</li>
+</ul>
+<p>Avoid TTL-only caches when:</p>
+<ul>
+<li>Users expect strong correctness (billing, permissions, inventory)</li>
+<li>A single stale value can cause harm</li>
+</ul>
+<hr>
+<h2 id="invalidation-strategies-that-scale">Invalidation Strategies That Scale</h2>
+<p>The “two hard things” joke exists for a reason: invalidation is where systems fail.</p>
+<h3 id="1-write-through">1) Write-through</h3>
+<p>Update cache at the same time you write to the source of truth.</p>
+<ul>
+<li>Pros: reads are fast and fresh</li>
+<li>Cons: writes become slower, and failures are tricky (what if cache update fails?)</li>
+</ul>
+<h3 id="2-write-back-rare">2) Write-back (rare)</h3>
+<p>Write to cache first, flush to DB later.</p>
+<ul>
+<li>Pros: extremely fast writes</li>
+<li>Cons: complexity and data-loss risk; usually not worth it outside specialized systems</li>
+</ul>
+<h3 id="3-cache-aside-lazy-loading">3) Cache-aside (lazy loading)</h3>
+<p>On read: check cache; if missing, load from DB and store.
+On write: update DB, then invalidate cache.</p>
+<ul>
+<li>Pros: simple and popular</li>
+<li>Cons: invalidation is your job; race conditions exist</li>
+</ul>
+<h3 id="4-event-driven-invalidation">4) Event-driven invalidation</h3>
+<p>Publish events on writes; consumers invalidate relevant keys.</p>
+<ul>
+<li>Pros: good decoupling and scale</li>
+<li>Cons: requires a reliable event pipeline and careful key design</li>
+</ul>
+<hr>
+<h2 id="correctness-pitfalls-and-how-to-avoid-them">Correctness Pitfalls and How to Avoid Them</h2>
+<h3 id="cache-key-design-errors">Cache key design errors</h3>
+<p>Bad cache keys cause incorrect data to leak across users.</p>
+<p>Rules of thumb:</p>
+<ul>
+<li>Include all dimensions that affect the result (user id, locale, permissions, feature flags)</li>
+<li>Normalize inputs (lowercase, stable sorting, canonical query params)</li>
+<li>Version your keys (<code>v1:</code> prefix) so you can invalidate by migration</li>
+</ul>
+<p>Example key shape:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>v2:product:{id}:locale:{locale}:currency:{currency}</span></span></code></pre>
+<h3 id="the-thundering-herd-cache-stampede">The thundering herd (cache stampede)</h3>
+<p>When a hot key expires, many requests recompute at once.</p>
+<p>Mitigations:</p>
+<ul>
+<li><strong>Probabilistic early refresh</strong>: refresh before TTL hits zero</li>
+<li><strong>Soft TTL + hard TTL</strong>: serve stale value briefly while refreshing in background</li>
+<li><strong>Single-flight locking</strong>: only one worker recomputes; others wait or serve stale</li>
+</ul>
+<h3 id="caching-errors-and-timeouts">Caching errors and timeouts</h3>
+<p>Caching failures should degrade gracefully.</p>
+<ul>
+<li>If cache is down, your app must still work (maybe slower)</li>
+<li>Treat the cache as an optimization, not a dependency—unless you’ve designed it to be one</li>
+</ul>
+<h3 id="caching-authorization-and-permissions">Caching authorization and permissions</h3>
+<p>A classic incident pattern:</p>
+<ol>
+<li>Cache a response for user A</li>
+<li>Serve it to user B by accident</li>
+</ol>
+<p>If your response depends on auth context, <strong>never share keys</strong> across users unless you have a robust permission-aware key strategy.</p>
+<hr>
+<h2 id="stale-while-revalidate-the-most-practical-advanced-pattern">Stale-While-Revalidate: The Most Practical “Advanced” Pattern</h2>
+<p>Many teams aim for perfect freshness and end up with brittle systems. A better pattern for many endpoints is:</p>
+<ul>
+<li>Serve cached value immediately (even if slightly stale)</li>
+<li>Refresh asynchronously when it approaches expiration</li>
+</ul>
+<p>This pattern smooths load spikes and improves tail latency.</p>
+<p>A simple mental model:</p>
+<ul>
+<li><strong>Hard TTL</strong>: maximum staleness you will ever serve</li>
+<li><strong>Soft TTL</strong>: when you start refreshing</li>
+</ul>
+<p>When soft TTL is hit:</p>
+<ul>
+<li>If cache has value: serve it</li>
+<li>Trigger a background refresh</li>
+</ul>
+<p>When hard TTL is hit:</p>
+<ul>
+<li>Block and recompute (or return fallback)</li>
+</ul>
+<p>This turns cache expiry from a cliff into a ramp.</p>
+<hr>
+<h2 id="observability-if-you-cant-measure-it-you-cant-trust-it">Observability: If You Can’t Measure It, You Can’t Trust It</h2>
+<p>You should be able to answer these questions from dashboards:</p>
+<ul>
+<li>Cache hit ratio (overall and per key group)</li>
+<li>Miss latency and backend load during misses</li>
+<li>Evictions (memory pressure or policy)</li>
+<li>Hot keys (top N keys by QPS)</li>
+<li>Stampede symptoms (miss spikes, lock contention)</li>
+</ul>
+<p>Be cautious with “hit ratio” as a vanity metric: a high hit ratio can still hide correctness bugs or stampedes.</p>
+<hr>
+<h2 id="when-not-to-cache">When Not to Cache</h2>
+<p>Caching is not free. Don’t cache when:</p>
+<ul>
+<li>Data is highly personalized and low-reuse</li>
+<li>Results must be correct in real time (payments, stock levels, permissions)</li>
+<li>You can achieve the performance goal by optimizing queries, indexes, or batching</li>
+<li>The operational complexity outweighs the savings</li>
+</ul>
+<p>A good heuristic:</p>
+<blockquote>
+<p>Cache after you understand the bottleneck, not before.</p>
+</blockquote>
+<hr>
+<h2 id="a-practical-checklist">A Practical Checklist</h2>
+<p>Before adding a cache, confirm:</p>
+<ul>
+<li><strong>What are you caching?</strong> response / data / computation / negative</li>
+<li><strong>What is the acceptable staleness?</strong> seconds? minutes? must be exact?</li>
+<li><strong>What triggers invalidation?</strong> TTL only? writes? events?</li>
+<li><strong>What is the key shape?</strong> versioned, canonical, permission-aware</li>
+<li><strong>How do you prevent stampedes?</strong> soft/hard TTL, single-flight, jitter</li>
+<li><strong>What happens when cache fails?</strong> fallback path and timeouts</li>
+<li><strong>How will you measure success?</strong> p95 latency, DB QPS, error rate</li>
+</ul>
+<hr>
+<h2 id="final-takeaway">Final Takeaway</h2>
+<p>Caching is not about making things fast. It is about <strong>deciding where you are willing to be stale, and for how long</strong>.</p>
+<p>A concrete conclusion you can apply:</p>
+<ul>
+<li>Start with <strong>request-scope caching</strong> to eliminate duplicate work safely.</li>
+<li>Add <strong>shared caches (Redis/CDN)</strong> only after you understand reuse patterns.</li>
+<li>Use <strong>TTL for tolerance</strong>, not correctness.</li>
+<li>Treat <strong>invalidation as a design requirement</strong>, not an afterthought.</li>
+<li>Prefer <strong>stale-while-revalidate</strong> over hard expiration for user-facing reads.</li>
+<li>Design cache keys and observability before you ship the cache.</li>
+</ul>
+<p>If you cannot clearly answer <em>what can be stale, for how long, and what breaks if it is</em>, you are not ready to add a cache.</p>
+<p>Caching works best when it is deliberate, bounded, and measurable—not when it is added reactively in response to slow queries.</p> </article> <div style="max-width: 800px; margin: 0 auto 5rem auto; border-top: 2px solid #333; padding-top: 2rem; text-align: center;"> <a href="/blog" style="font-family: var(--font-heading); font-size: 2rem; color: var(--p5-white); text-transform: uppercase;">
+← Back to Log
+</a> </div> </div>  </main> <footer class="site-footer"> <div class="container"> <div class="footer-tagline">NEVER STOP BUILDING</div> <div class="footer-socials"> <a href="https://github.com/pandabb3356" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-icon"> <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg> </a> <!-- Space for future icons (LinkedIn, Twitter, etc.) --> </div> <div class="footer-cr"> <p>&copy; 2026 Ken Huang — All Rights Reserved.</p> <p>Built with <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a></p> </div> </div> </footer> <script type="module">const s=new IntersectionObserver(e=>{e.forEach(r=>{r.isIntersecting&&r.target.classList.add("visible")})},{threshold:.1}),t=()=>{document.querySelectorAll(".reveal").forEach(e=>s.observe(e))};t();</script> </body> </html>

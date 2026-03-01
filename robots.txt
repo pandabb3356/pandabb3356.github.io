@@ -1,1 +1,4 @@
 User-agent: *
+Allow: /
+
+Sitemap: https://pandabb3356.github.io/sitemap-index.xml

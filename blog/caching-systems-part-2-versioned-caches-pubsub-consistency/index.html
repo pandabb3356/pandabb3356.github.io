@@ -1,0 +1,129 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><title>Caching Systems (Part 2): Versioned Caches, Pub/Sub Invalidation, and Consistency</title><link rel="canonical" href="https://pandabb3356.github.io/blog/caching-systems-part-2-versioned-caches-pubsub-consistency/"><meta name="description" content="Part 2 focuses on keeping caches correct: versioned keys, pub/sub invalidation, and practical consistency choices."><meta name="robots" content="index, follow"><meta property="og:title" content="Caching Systems (Part 2): Versioned Caches, Pub/Sub Invalidation, and Consistency"><meta property="og:type" content="website"><meta property="og:image" content="https://images.unsplash.com/photo-1752867942884-e58115c2cc52?ixid=M3w4NDYzMjZ8MHwxfHNlYXJjaHw1OHx8bWluaW1hbCUyQ3dvcmtzcGFjZXxlbnwwfDB8fHwxNzY2Mjk4NzI1fDA&ixlib=rb-4.1.0&w=1200&h=800&fit=crop"><meta property="og:url" content="https://pandabb3356.github.io/blog/caching-systems-part-2-versioned-caches-pubsub-consistency/"><meta property="og:description" content="Part 2 focuses on keeping caches correct: versioned keys, pub/sub invalidation, and practical consistency choices."><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Caching Systems (Part 2): Versioned Caches, Pub/Sub Invalidation, and Consistency"><meta name="twitter:image" content="https://images.unsplash.com/photo-1752867942884-e58115c2cc52?ixid=M3w4NDYzMjZ8MHwxfHNlYXJjaHw1OHx8bWluaW1hbCUyQ3dvcmtzcGFjZXxlbnwwfDB8fHwxNzY2Mjk4NzI1fDA&ixlib=rb-4.1.0&w=1200&h=800&fit=crop"><meta name="twitter:description" content="Part 2 focuses on keeping caches correct: versioned keys, pub/sub invalidation, and practical consistency choices."><meta name="viewport" content="width=device-width"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="generator" content="Astro v5.17.3"><!-- Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=G-M3C36GR88F"></script><script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-M3C36GR88F');
+        </script><!-- Google Fonts: Anton (Heading), Bebas Neue (Sub), Inter (Body), JetBrains Mono (Code) --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/_page_.XZvY61kE.css"></head> <body> <!-- Note: We will update the Header component itself next if it has inline styles, but global.css handles most layout now --> <header class="site-header"> <div class="container header-inner"> <a href="/" class="logo">KH</a> <nav class="nav-links"> <a href="/#intro">Intro</a><a href="/#about">About</a><a href="/#works">Works</a><a href="/blog">Blog</a> </nav> </div> </header> <main>   <div class="article-hero reveal"> <div class="hero-bg-slash"></div> <div class="container hero-content"> <div class="article-meta"> 2025.12.21 <span class="meta-divider">//</span> <span class="meta-category">Architecture</span> </div> <h1 class="article-title"> Caching Systems (Part 2): Versioned Caches, Pub/Sub Invalidation, and Consistency </h1> <div class="article-tags"> <a href="/tags/cache" class="article-tag">
+#cache </a><a href="/tags/caching" class="article-tag">
+#caching </a><a href="/tags/system-design" class="article-tag">
+#system-design </a><a href="/tags/invalidation" class="article-tag">
+#invalidation </a><a href="/tags/pubsub" class="article-tag">
+#pubsub </a><a href="/tags/versioning" class="article-tag">
+#versioning </a><a href="/tags/consistency" class="article-tag">
+#consistency </a><a href="/tags/redis" class="article-tag">
+#redis </a> </div> </div> </div>  <div class="container reveal"> <article class="prose" style="max-width: 800px; margin: 0 auto; background: var(--bg-color); padding: 2rem 0 5rem 0;"> <p>Part 1 explained caching layers and failure modes. This part is about <strong>keeping caches correct</strong> when data changes in a distributed system: versioned keys, event-driven invalidation, and the consistency trade-offs you actually live with.</p>
+<hr>
+<h2 id="1-versioned-caches-invalidate-by-changing-the-key">1) Versioned caches: invalidate by changing the key</h2>
+<p>Instead of deleting keys, you <strong>bump a version</strong> and let old keys expire naturally.</p>
+<p><strong>Key pattern:</strong></p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>user:{id}:v{version}</span></span></code></pre>
+<p><strong>How it works:</strong></p>
+<ul>
+<li>Store the current version in DB or a small metadata store.</li>
+<li>Reads fetch the version, then read the versioned cache key.</li>
+<li>Writes increment the version.</li>
+</ul>
+<p><strong>Pros</strong></p>
+<ul>
+<li>Invalidation is cheap and reliable (no delete storms).</li>
+<li>Old keys can expire with TTL in the background.</li>
+<li>Works across many caches and services.</li>
+</ul>
+<p><strong>Cons</strong></p>
+<ul>
+<li>Extra read (to get version) or version is cached too.</li>
+<li>Requires a version store with strong write semantics.</li>
+</ul>
+<p><strong>Where it shines</strong></p>
+<ul>
+<li>User profiles, product pages, or any entity with frequent updates.</li>
+<li>Multi-service systems where you cannot fan-out invalidations reliably.</li>
+</ul>
+<hr>
+<h2 id="2-pubsub-invalidation-push-change-events">2) Pub/Sub invalidation: push change events</h2>
+<p>In this model, writes <strong>publish an event</strong>. Consumers invalidate or update their caches.</p>
+<p><strong>Event payload (example):</strong></p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>{</span></span>
+<span class="line"><span>  "entity": "user",</span></span>
+<span class="line"><span>  "id": "123",</span></span>
+<span class="line"><span>  "action": "updated",</span></span>
+<span class="line"><span>  "ts": 1734790000</span></span>
+<span class="line"><span>}</span></span></code></pre>
+<p><strong>Typical flow</strong></p>
+<ol>
+<li>Write to DB</li>
+<li>Publish event</li>
+<li>Cache owners receive event</li>
+<li>Invalidate or update cache</li>
+</ol>
+<p><strong>Why it fails if you do it naively</strong></p>
+<ul>
+<li>Events can be dropped, delayed, or reordered.</li>
+<li>Consumers can be down when events publish.</li>
+</ul>
+<p><strong>How to make it reliable</strong></p>
+<ul>
+<li>Use an <strong>outbox pattern</strong> (store events in DB, publish asynchronously).</li>
+<li>Make handlers idempotent.</li>
+<li>Use a durable stream (Kafka/NATS) instead of volatile pubsub when correctness matters.</li>
+</ul>
+<hr>
+<h2 id="3-ttl-is-not-enough-use-soft-ttl-and-stale-while-revalidate">3) TTL is not enough; use soft TTL and stale-while-revalidate</h2>
+<p>TTL alone creates stampedes and synchronized expirations.</p>
+<p><strong>Better pattern</strong></p>
+<ul>
+<li><strong>Soft TTL:</strong> consider cache stale before it truly expires.</li>
+<li>Serve stale data briefly while one request refreshes in background.</li>
+<li>Add jitter to TTL to avoid thundering herds.</li>
+</ul>
+<p><strong>Example strategy</strong></p>
+<ul>
+<li>Hard TTL: 10 minutes</li>
+<li>Soft TTL: 8 minutes</li>
+<li>If age > 8 minutes, refresh asynchronously</li>
+</ul>
+<hr>
+<h2 id="4-stampede-control-avoid-n-concurrent-recomputations">4) Stampede control: avoid N concurrent recomputations</h2>
+<p>When popular keys expire, you can melt the DB.</p>
+<p><strong>Mitigations</strong></p>
+<ul>
+<li>Singleflight (request coalescing)</li>
+<li>Locking on recompute</li>
+<li>Probabilistic early refresh</li>
+<li>Pre-warming hot keys</li>
+</ul>
+<hr>
+<h2 id="5-consistency-is-a-choice-not-a-bug">5) Consistency is a choice, not a bug</h2>
+<p>There is no perfect cache consistency, only <strong>explicit trade-offs</strong>.</p>
+<p><strong>Common models</strong></p>
+<ul>
+<li><strong>Eventual consistency:</strong> cheap, fast, some staleness</li>
+<li><strong>Bounded staleness:</strong> TTL-based, measurable drift</li>
+<li><strong>Read-your-writes:</strong> require versioning or session caches</li>
+<li><strong>Strong consistency:</strong> usually too expensive to maintain for caches</li>
+</ul>
+<p><strong>Rule of thumb</strong></p>
+<ul>
+<li>If a bug is catastrophic, skip caching for that path.</li>
+<li>If staleness is acceptable, make it measurable and visible.</li>
+</ul>
+<hr>
+<h2 id="6-a-practical-decision-matrix">6) A practical decision matrix</h2>
+<p>Use this to pick a strategy per domain:</p>
+<ul>
+<li><strong>User profile:</strong> versioned keys + TTL + background refresh</li>
+<li><strong>Search results:</strong> TTL + soft TTL + async refresh</li>
+<li><strong>Feature flags:</strong> pub/sub with durable stream + short TTL</li>
+<li><strong>Financial balances:</strong> avoid cache or use read-your-writes session cache only</li>
+</ul>
+<hr>
+<h2 id="final-takeaway">Final takeaway</h2>
+<p>Correctness in caches is <strong>not automatic</strong>. It requires:</p>
+<ul>
+<li>deterministic invalidation (versioning),</li>
+<li>durable change propagation (pub/sub + outbox),</li>
+<li>and explicit consistency guarantees.</li>
+</ul>
+<p>Part 3 shows how to build a cache-aside layer in Go with these patterns baked in.</p> </article> <div style="max-width: 800px; margin: 0 auto 5rem auto; border-top: 2px solid #333; padding-top: 2rem; text-align: center;"> <a href="/blog" style="font-family: var(--font-heading); font-size: 2rem; color: var(--p5-white); text-transform: uppercase;">
+← Back to Log
+</a> </div> </div>  </main> <footer class="site-footer"> <div class="container"> <div class="footer-tagline">NEVER STOP BUILDING</div> <div class="footer-socials"> <a href="https://github.com/pandabb3356" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-icon"> <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg> </a> <!-- Space for future icons (LinkedIn, Twitter, etc.) --> </div> <div class="footer-cr"> <p>&copy; 2026 Ken Huang — All Rights Reserved.</p> <p>Built with <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a></p> </div> </div> </footer> <script type="module">const s=new IntersectionObserver(e=>{e.forEach(r=>{r.isIntersecting&&r.target.classList.add("visible")})},{threshold:.1}),t=()=>{document.querySelectorAll(".reveal").forEach(e=>s.observe(e))};t();</script> </body> </html>

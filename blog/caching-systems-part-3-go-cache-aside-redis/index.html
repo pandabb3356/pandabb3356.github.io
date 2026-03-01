@@ -1,0 +1,135 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><title>Caching Systems (Part 3): Building Cache-Aside in Go with Redis</title><link rel="canonical" href="https://pandabb3356.github.io/blog/caching-systems-part-3-go-cache-aside-redis/"><meta name="description" content="Part 3 implements a production-ready cache-aside layer in Go with Redis, TTL jitter, and safe invalidation."><meta name="robots" content="index, follow"><meta property="og:title" content="Caching Systems (Part 3): Building Cache-Aside in Go with Redis"><meta property="og:type" content="website"><meta property="og:image" content="https://images.unsplash.com/photo-1505304451-3b3b85a91afe?ixid=M3w4NDYzMjZ8MHwxfHNlYXJjaHwzN3x8bWluaW1hbCUyQ3dvcmtzcGFjZXxlbnwwfDB8fHwxNzY2Mjk4NzI1fDA&ixlib=rb-4.1.0&w=1200&h=800&fit=crop"><meta property="og:url" content="https://pandabb3356.github.io/blog/caching-systems-part-3-go-cache-aside-redis/"><meta property="og:description" content="Part 3 implements a production-ready cache-aside layer in Go with Redis, TTL jitter, and safe invalidation."><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Caching Systems (Part 3): Building Cache-Aside in Go with Redis"><meta name="twitter:image" content="https://images.unsplash.com/photo-1505304451-3b3b85a91afe?ixid=M3w4NDYzMjZ8MHwxfHNlYXJjaHwzN3x8bWluaW1hbCUyQ3dvcmtzcGFjZXxlbnwwfDB8fHwxNzY2Mjk4NzI1fDA&ixlib=rb-4.1.0&w=1200&h=800&fit=crop"><meta name="twitter:description" content="Part 3 implements a production-ready cache-aside layer in Go with Redis, TTL jitter, and safe invalidation."><meta name="viewport" content="width=device-width"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="generator" content="Astro v5.17.3"><!-- Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=G-M3C36GR88F"></script><script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-M3C36GR88F');
+        </script><!-- Google Fonts: Anton (Heading), Bebas Neue (Sub), Inter (Body), JetBrains Mono (Code) --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/_page_.XZvY61kE.css"></head> <body> <!-- Note: We will update the Header component itself next if it has inline styles, but global.css handles most layout now --> <header class="site-header"> <div class="container header-inner"> <a href="/" class="logo">KH</a> <nav class="nav-links"> <a href="/#intro">Intro</a><a href="/#about">About</a><a href="/#works">Works</a><a href="/blog">Blog</a> </nav> </div> </header> <main>   <div class="article-hero reveal"> <div class="hero-bg-slash"></div> <div class="container hero-content"> <div class="article-meta"> 2025.12.21 <span class="meta-divider">//</span> <span class="meta-category">Architecture</span> </div> <h1 class="article-title"> Caching Systems (Part 3): Building Cache-Aside in Go with Redis </h1> <div class="article-tags"> <a href="/tags/cache" class="article-tag">
+#cache </a><a href="/tags/caching" class="article-tag">
+#caching </a><a href="/tags/system-design" class="article-tag">
+#system-design </a><a href="/tags/golang" class="article-tag">
+#golang </a><a href="/tags/redis" class="article-tag">
+#redis </a><a href="/tags/ttl" class="article-tag">
+#ttl </a><a href="/tags/invalidation" class="article-tag">
+#invalidation </a> </div> </div> </div>  <div class="container reveal"> <article class="prose" style="max-width: 800px; margin: 0 auto; background: var(--bg-color); padding: 2rem 0 5rem 0;"> <p>Part 2 covered invalidation strategies. This part shows a <strong>cache-aside implementation in Go</strong> that is safe in production: TTL jitter, request coalescing, and defensive fallbacks.</p>
+<hr>
+<h2 id="design-goals">Design goals</h2>
+<ul>
+<li>Cache reads are fast and non-fatal</li>
+<li>Cache misses do not stampede the DB</li>
+<li>Writes invalidate or refresh cache deterministically</li>
+</ul>
+<p><strong>Assumptions</strong></p>
+<ul>
+<li>Redis as shared cache</li>
+<li>JSON serialization</li>
+<li><code>go-redis</code> client</li>
+</ul>
+<hr>
+<h2 id="cache-key-strategy">Cache key strategy</h2>
+<p>Keep it boring and deterministic:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>user:{id}</span></span></code></pre>
+<p>If you later adopt versioned caches, make it:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>user:{id}:v{version}</span></span></code></pre>
+<hr>
+<h2 id="go-implementation-cache-aside--singleflight">Go implementation (cache-aside + singleflight)</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">package</span><span style="color:#B392F0"> cache</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> (</span></span>
+<span class="line"><span style="color:#9ECBFF">    "</span><span style="color:#B392F0">context</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#9ECBFF">    "</span><span style="color:#B392F0">encoding/json</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#9ECBFF">    "</span><span style="color:#B392F0">math/rand</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#9ECBFF">    "</span><span style="color:#B392F0">time</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9ECBFF">    "</span><span style="color:#B392F0">golang.org/x/sync/singleflight</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#9ECBFF">    "</span><span style="color:#B392F0">github.com/redis/go-redis/v9</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> User</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    ID    </span><span style="color:#F97583">string</span><span style="color:#9ECBFF"> `json:"id"`</span></span>
+<span class="line"><span style="color:#E1E4E8">    Name  </span><span style="color:#F97583">string</span><span style="color:#9ECBFF"> `json:"name"`</span></span>
+<span class="line"><span style="color:#E1E4E8">    Email </span><span style="color:#F97583">string</span><span style="color:#9ECBFF"> `json:"email"`</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> Store</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    rdb   </span><span style="color:#F97583">*</span><span style="color:#B392F0">redis</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Client</span></span>
+<span class="line"><span style="color:#E1E4E8">    group </span><span style="color:#B392F0">singleflight</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Group</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> NewStore</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">rdb</span><span style="color:#F97583"> *</span><span style="color:#B392F0">redis</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Client</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">*</span><span style="color:#B392F0">Store</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#F97583"> &#x26;</span><span style="color:#B392F0">Store</span><span style="color:#E1E4E8">{rdb: rdb}</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">s </span><span style="color:#F97583">*</span><span style="color:#B392F0">Store</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">cacheKey</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">string</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#9ECBFF"> "user:"</span><span style="color:#F97583"> +</span><span style="color:#E1E4E8"> id</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> ttlWithJitter</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">base</span><span style="color:#B392F0"> time</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Duration</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">time</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Duration</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#6A737D">    // Add up to 10% jitter to spread expirations</span></span>
+<span class="line"><span style="color:#E1E4E8">    jitter </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> time.</span><span style="color:#B392F0">Duration</span><span style="color:#E1E4E8">(rand.</span><span style="color:#B392F0">Int63n</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">int64</span><span style="color:#E1E4E8">(base </span><span style="color:#F97583">/</span><span style="color:#79B8FF"> 10</span><span style="color:#E1E4E8">)))</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> base </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> jitter</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">s </span><span style="color:#F97583">*</span><span style="color:#B392F0">Store</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">GetUser</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">ctx</span><span style="color:#B392F0"> context</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Context</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">dbFetch</span><span style="color:#F97583"> func</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">context</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Context</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">string</span><span style="color:#E1E4E8">) (</span><span style="color:#F97583">*</span><span style="color:#B392F0">User</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">)) (</span><span style="color:#F97583">*</span><span style="color:#B392F0">User</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">    key </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> s.</span><span style="color:#B392F0">cacheKey</span><span style="color:#E1E4E8">(id)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">    // 1) Try cache</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> b, err </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> s.rdb.</span><span style="color:#B392F0">Get</span><span style="color:#E1E4E8">(ctx, key).</span><span style="color:#B392F0">Bytes</span><span style="color:#E1E4E8">(); err </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        var</span><span style="color:#E1E4E8"> u </span><span style="color:#B392F0">User</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> jsonErr </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> json.</span><span style="color:#B392F0">Unmarshal</span><span style="color:#E1E4E8">(b, </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">u); jsonErr </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#F97583"> &#x26;</span><span style="color:#E1E4E8">u, </span><span style="color:#79B8FF">nil</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">    // 2) Singleflight to avoid stampede</span></span>
+<span class="line"><span style="color:#E1E4E8">    v, err, _ </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> s.group.</span><span style="color:#B392F0">Do</span><span style="color:#E1E4E8">(key, </span><span style="color:#F97583">func</span><span style="color:#E1E4E8">() (</span><span style="color:#B392F0">any</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        u, err </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> dbFetch</span><span style="color:#E1E4E8">(ctx, id)</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> err </span><span style="color:#F97583">!=</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8">, err</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> u </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">nil</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> b, err </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> json.</span><span style="color:#B392F0">Marshal</span><span style="color:#E1E4E8">(u); err </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">            _ </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> s.rdb.</span><span style="color:#B392F0">Set</span><span style="color:#E1E4E8">(ctx, key, b, </span><span style="color:#B392F0">ttlWithJitter</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">10</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">time.Minute)).</span><span style="color:#B392F0">Err</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> u, </span><span style="color:#79B8FF">nil</span></span>
+<span class="line"><span style="color:#E1E4E8">    })</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> err </span><span style="color:#F97583">!=</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8">, err</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> v </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">nil</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> v.(</span><span style="color:#F97583">*</span><span style="color:#B392F0">User</span><span style="color:#E1E4E8">), </span><span style="color:#79B8FF">nil</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">s </span><span style="color:#F97583">*</span><span style="color:#B392F0">Store</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">InvalidateUser</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">ctx</span><span style="color:#B392F0"> context</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Context</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> s.rdb.</span><span style="color:#B392F0">Del</span><span style="color:#E1E4E8">(ctx, s.</span><span style="color:#B392F0">cacheKey</span><span style="color:#E1E4E8">(id)).</span><span style="color:#B392F0">Err</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<hr>
+<h2 id="write-path-update-db-then-invalidate">Write path: update DB, then invalidate</h2>
+<p><strong>Golden rule:</strong> DB is source of truth. Cache follows.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">s </span><span style="color:#F97583">*</span><span style="color:#B392F0">Store</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">UpdateUser</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">ctx</span><span style="color:#B392F0"> context</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Context</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">id</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">dbUpdate</span><span style="color:#F97583"> func</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">context</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Context</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">string</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">error</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> err </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> dbUpdate</span><span style="color:#E1E4E8">(ctx, id); err </span><span style="color:#F97583">!=</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> err</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> s.</span><span style="color:#B392F0">InvalidateUser</span><span style="color:#E1E4E8">(ctx, id)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>If you need read-your-writes consistency, consider:</p>
+<ul>
+<li>Versioned keys (Part 2)</li>
+<li>Updating cache immediately after write</li>
+</ul>
+<hr>
+<h2 id="production-notes">Production notes</h2>
+<ul>
+<li><strong>Negative caching:</strong> cache “not found” for a short TTL to reduce DB hits</li>
+<li><strong>Timeouts:</strong> enforce short Redis timeouts; cache failures should not take down reads</li>
+<li><strong>Metrics:</strong> track hit rate, miss rate, and stampede events</li>
+<li><strong>Backoff:</strong> if Redis is unhealthy, bypass cache temporarily</li>
+</ul>
+<hr>
+<h2 id="final-takeaway">Final takeaway</h2>
+<p>Cache-aside is simple, but production-safe cache-aside is deliberate. Add jitter, coalescing, and clear invalidation and you get the best of both worlds: speed without hidden correctness debt.</p> </article> <div style="max-width: 800px; margin: 0 auto 5rem auto; border-top: 2px solid #333; padding-top: 2rem; text-align: center;"> <a href="/blog" style="font-family: var(--font-heading); font-size: 2rem; color: var(--p5-white); text-transform: uppercase;">
+← Back to Log
+</a> </div> </div>  </main> <footer class="site-footer"> <div class="container"> <div class="footer-tagline">NEVER STOP BUILDING</div> <div class="footer-socials"> <a href="https://github.com/pandabb3356" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-icon"> <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg> </a> <!-- Space for future icons (LinkedIn, Twitter, etc.) --> </div> <div class="footer-cr"> <p>&copy; 2026 Ken Huang — All Rights Reserved.</p> <p>Built with <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a></p> </div> </div> </footer> <script type="module">const s=new IntersectionObserver(e=>{e.forEach(r=>{r.isIntersecting&&r.target.classList.add("visible")})},{threshold:.1}),t=()=>{document.querySelectorAll(".reveal").forEach(e=>s.observe(e))};t();</script> </body> </html>

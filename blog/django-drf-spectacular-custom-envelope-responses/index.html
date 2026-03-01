@@ -1,0 +1,110 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><title>Django DRF-Spectacular: Documenting Custom Envelope Responses</title><link rel="canonical" href="https://pandabb3356.github.io/blog/django-drf-spectacular-custom-envelope-responses/"><meta name="description" content="Learn why drf-spectacular misdocuments custom response envelopes in DRF and how to fix it with explicit or typed envelope serializers."><meta name="robots" content="index, follow"><meta property="og:title" content="Django DRF-Spectacular: Documenting Custom Envelope Responses"><meta property="og:type" content="website"><meta property="og:image" content="images/covers/unsplash-PcyrQsX5f4w.jpg"><meta property="og:url" content="https://pandabb3356.github.io/blog/django-drf-spectacular-custom-envelope-responses/"><meta property="og:description" content="Learn why drf-spectacular misdocuments custom response envelopes in DRF and how to fix it with explicit or typed envelope serializers."><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Django DRF-Spectacular: Documenting Custom Envelope Responses"><meta name="twitter:image" content="images/covers/unsplash-PcyrQsX5f4w.jpg"><meta name="twitter:description" content="Learn why drf-spectacular misdocuments custom response envelopes in DRF and how to fix it with explicit or typed envelope serializers."><meta name="viewport" content="width=device-width"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="generator" content="Astro v5.17.3"><!-- Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=G-M3C36GR88F"></script><script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-M3C36GR88F');
+        </script><!-- Google Fonts: Anton (Heading), Bebas Neue (Sub), Inter (Body), JetBrains Mono (Code) --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/_page_.XZvY61kE.css"></head> <body> <!-- Note: We will update the Header component itself next if it has inline styles, but global.css handles most layout now --> <header class="site-header"> <div class="container header-inner"> <a href="/" class="logo">KH</a> <nav class="nav-links"> <a href="/#intro">Intro</a><a href="/#about">About</a><a href="/#works">Works</a><a href="/blog">Blog</a> </nav> </div> </header> <main>   <div class="article-hero reveal"> <div class="hero-bg-slash"></div> <div class="container hero-content"> <div class="article-meta"> 2025.12.21 <span class="meta-divider">//</span> <span class="meta-category">Python</span> </div> <h1 class="article-title"> Django DRF-Spectacular: Documenting Custom Envelope Responses </h1> <div class="article-tags"> <a href="/tags/python" class="article-tag">
+#python </a><a href="/tags/django" class="article-tag">
+#django </a><a href="/tags/drf" class="article-tag">
+#drf </a><a href="/tags/drf-spectacular" class="article-tag">
+#drf-spectacular </a><a href="/tags/openapi" class="article-tag">
+#openapi </a><a href="/tags/api" class="article-tag">
+#api </a><a href="/tags/documentation" class="article-tag">
+#documentation </a> </div> </div> </div>  <div class="container reveal"> <article class="prose" style="max-width: 800px; margin: 0 auto; background: var(--bg-color); padding: 2rem 0 5rem 0;"> <p>Many teams using Django REST Framework (DRF) adopt a <strong>custom response envelope</strong> to keep API responses consistent across services. A common pattern looks like this:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "success"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">true</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">  "message"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"OK"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">  "data"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">    "id"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "name"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Alice"</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>While this structure is convenient for frontend applications, it often causes confusion when generating OpenAPI documentation with <strong>drf-spectacular</strong>. By default, drf-spectacular assumes that your serializer represents the <em>entire</em> response body, which is not true when you wrap data inside a custom envelope.</p>
+<p>This article explains why this mismatch happens and shows clean, maintainable ways to document custom envelope responses correctly.</p>
+<hr>
+<h2 id="why-drf-spectacular-gets-it-wrong-by-default">Why drf-spectacular Gets It Wrong by Default</h2>
+<p>In DRF, serializers usually describe the exact JSON returned by the API. When you return a wrapped response manually—such as <code>{"success": true, "data": serializer.data}</code>—the schema generator has no way to infer that extra structure.</p>
+<p>As a result, the generated OpenAPI schema typically documents only the inner serializer, misleading API consumers and frontend developers.</p>
+<hr>
+<h2 id="option-1-create-an-explicit-envelope-serializer-recommended">Option 1: Create an Explicit Envelope Serializer (Recommended)</h2>
+<p>The most explicit and maintainable solution is to define a reusable <strong>envelope serializer</strong>.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> rest_framework </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> serializers</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> EnvelopeSerializer</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">serializers</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Serializer</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#E1E4E8">    success </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> serializers.BooleanField()</span></span>
+<span class="line"><span style="color:#E1E4E8">    message </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> serializers.CharField(</span><span style="color:#FFAB70">required</span><span style="color:#F97583">=</span><span style="color:#79B8FF">False</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    data </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> serializers.JSONField()</span></span></code></pre>
+<p>Then, use <code>extend_schema</code> to document the response:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> drf_spectacular.utils </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> extend_schema</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">@extend_schema</span><span style="color:#E1E4E8">(</span></span>
+<span class="line"><span style="color:#FFAB70">    responses</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">EnvelopeSerializer</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> get</span><span style="color:#E1E4E8">(self, request):</span></span>
+<span class="line"><span style="color:#79B8FF">    ...</span></span></code></pre>
+<h3 id="pros">Pros</h3>
+<ul>
+<li>Clear and explicit schema</li>
+<li>Reusable across endpoints</li>
+<li>Works perfectly with schema generation</li>
+</ul>
+<h3 id="cons">Cons</h3>
+<ul>
+<li><code>data</code> is loosely typed unless customized further</li>
+</ul>
+<hr>
+<h2 id="option-2-typed-envelope-with-generic-pattern">Option 2: Typed Envelope with Generic Pattern</h2>
+<p>For better typing, you can define multiple envelope serializers for different payloads:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> UserDataSerializer</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">serializers</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Serializer</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#79B8FF">    id</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> serializers.IntegerField()</span></span>
+<span class="line"><span style="color:#E1E4E8">    name </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> serializers.CharField()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> UserEnvelopeSerializer</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">serializers</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Serializer</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#E1E4E8">    success </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> serializers.BooleanField()</span></span>
+<span class="line"><span style="color:#E1E4E8">    message </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> serializers.CharField(</span><span style="color:#FFAB70">required</span><span style="color:#F97583">=</span><span style="color:#79B8FF">False</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    data </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> UserDataSerializer()</span></span></code></pre>
+<p>This produces fully accurate OpenAPI documentation at the cost of some duplication.</p>
+<hr>
+<h2 id="option-3-inline-schema-override">Option 3: Inline Schema Override</h2>
+<p>For simple or one-off endpoints, you can define the envelope inline:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> drf_spectacular.utils </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> extend_schema</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> drf_spectacular.types </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> OpenApiTypes</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">@extend_schema</span><span style="color:#E1E4E8">(</span></span>
+<span class="line"><span style="color:#FFAB70">    responses</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">        200</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#9ECBFF">            "type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"object"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">            "properties"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#9ECBFF">                "success"</span><span style="color:#E1E4E8">: {</span><span style="color:#9ECBFF">"type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"boolean"</span><span style="color:#E1E4E8">},</span></span>
+<span class="line"><span style="color:#9ECBFF">                "message"</span><span style="color:#E1E4E8">: {</span><span style="color:#9ECBFF">"type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"string"</span><span style="color:#E1E4E8">},</span></span>
+<span class="line"><span style="color:#9ECBFF">                "data"</span><span style="color:#E1E4E8">: {</span><span style="color:#9ECBFF">"type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"object"</span><span style="color:#E1E4E8">},</span></span>
+<span class="line"><span style="color:#E1E4E8">            }</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> get</span><span style="color:#E1E4E8">(self, request):</span></span>
+<span class="line"><span style="color:#79B8FF">    ...</span></span></code></pre>
+<h3 id="when-to-use-this">When to use this</h3>
+<ul>
+<li>Prototyping</li>
+<li>Simple endpoints</li>
+<li>Minimal reuse expected</li>
+</ul>
+<hr>
+<h2 id="should-you-use-a-global-envelope">Should You Use a Global Envelope?</h2>
+<p>Some teams try to enforce a global envelope by overriding <code>APIView.finalize_response</code>. While this works at runtime, it complicates schema generation and often results in inaccurate OpenAPI docs.</p>
+<p>If you choose this approach, <strong>explicit schema definitions are mandatory</strong>—automatic inference will not work.</p>
+<hr>
+<h2 id="best-practices-summary">Best Practices Summary</h2>
+<ul>
+<li>Prefer explicit envelope serializers</li>
+<li>Keep schema definitions close to the view</li>
+<li>Avoid magic global overrides for documentation</li>
+<li>Treat OpenAPI as a first-class contract, not a side effect</li>
+</ul>
+<hr>
+<h2 id="final-thoughts">Final Thoughts</h2>
+<p>drf-spectacular is powerful, but it cannot guess response shapes that serializers do not describe. Once you accept that limitation, documenting custom envelope responses becomes straightforward and predictable.</p>
+<p>Clear schemas lead to happier frontend developers, fewer integration bugs, and APIs that scale gracefully.</p> </article> <div style="max-width: 800px; margin: 0 auto 5rem auto; border-top: 2px solid #333; padding-top: 2rem; text-align: center;"> <a href="/blog" style="font-family: var(--font-heading); font-size: 2rem; color: var(--p5-white); text-transform: uppercase;">
+← Back to Log
+</a> </div> </div>  </main> <footer class="site-footer"> <div class="container"> <div class="footer-tagline">NEVER STOP BUILDING</div> <div class="footer-socials"> <a href="https://github.com/pandabb3356" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-icon"> <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg> </a> <!-- Space for future icons (LinkedIn, Twitter, etc.) --> </div> <div class="footer-cr"> <p>&copy; 2026 Ken Huang — All Rights Reserved.</p> <p>Built with <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a></p> </div> </div> </footer> <script type="module">const s=new IntersectionObserver(e=>{e.forEach(r=>{r.isIntersecting&&r.target.classList.add("visible")})},{threshold:.1}),t=()=>{document.querySelectorAll(".reveal").forEach(e=>s.observe(e))};t();</script> </body> </html>

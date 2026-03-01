@@ -1,0 +1,73 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><title>Integrating pprof with Gin</title><link rel="canonical" href="https://pandabb3356.github.io/blog/golang-gin-pprof-integration/"><meta name="description" content="A step-by-step guide on how to integrate Go's pprof with the Gin web framework using gin-contrib/pprof."><meta name="robots" content="index, follow"><meta property="og:title" content="Integrating pprof with Gin"><meta property="og:type" content="website"><meta property="og:image" content="images/covers/austin-distel-21GWwco-JBQ-unsplash.jpg"><meta property="og:url" content="https://pandabb3356.github.io/blog/golang-gin-pprof-integration/"><meta property="og:description" content="A step-by-step guide on how to integrate Go's pprof with the Gin web framework using gin-contrib/pprof."><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Integrating pprof with Gin"><meta name="twitter:image" content="images/covers/austin-distel-21GWwco-JBQ-unsplash.jpg"><meta name="twitter:description" content="A step-by-step guide on how to integrate Go's pprof with the Gin web framework using gin-contrib/pprof."><meta name="viewport" content="width=device-width"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="generator" content="Astro v5.17.3"><!-- Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=G-M3C36GR88F"></script><script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-M3C36GR88F');
+        </script><!-- Google Fonts: Anton (Heading), Bebas Neue (Sub), Inter (Body), JetBrains Mono (Code) --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/_page_.XZvY61kE.css"></head> <body> <!-- Note: We will update the Header component itself next if it has inline styles, but global.css handles most layout now --> <header class="site-header"> <div class="container header-inner"> <a href="/" class="logo">KH</a> <nav class="nav-links"> <a href="/#intro">Intro</a><a href="/#about">About</a><a href="/#works">Works</a><a href="/blog">Blog</a> </nav> </div> </header> <main>   <div class="article-hero reveal"> <div class="hero-bg-slash"></div> <div class="container hero-content"> <div class="article-meta"> 2023.08.18 <span class="meta-divider">//</span> <span class="meta-category">Golang</span> </div> <h1 class="article-title"> Integrating pprof with Gin </h1> <div class="article-tags"> <a href="/tags/golang" class="article-tag">
+#golang </a><a href="/tags/gin" class="article-tag">
+#gin </a><a href="/tags/pprof" class="article-tag">
+#pprof </a> </div> </div> </div>  <div class="container reveal"> <article class="prose" style="max-width: 800px; margin: 0 auto; background: var(--bg-color); padding: 2rem 0 5rem 0;"> <p>Profiling applications is crucial for understanding performance bottlenecks. In Go, the standard library offers the <code>pprof</code> package for this purpose. This article covers how to integrate <code>pprof</code> with the Gin web framework using the <code>gin-contrib/pprof</code> package.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li>A Go development environment.</li>
+<li>Knowledge of the Gin framework.</li>
+</ul>
+<h2 id="setting-up-gin">Setting Up Gin</h2>
+<p>Install Gin:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">go</span><span style="color:#E1E4E8"> get </span><span style="color:#F97583">-</span><span style="color:#E1E4E8">u github.com</span><span style="color:#F97583">/</span><span style="color:#E1E4E8">gin</span><span style="color:#F97583">-</span><span style="color:#E1E4E8">gonic</span><span style="color:#F97583">/</span><span style="color:#E1E4E8">gin</span></span></code></pre>
+<p>Create a simple <code>Gin</code> application:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">package</span><span style="color:#B392F0"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#9ECBFF"> "</span><span style="color:#B392F0">github.com/gin-gonic/gin</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> main</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#E1E4E8">    r </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> gin.</span><span style="color:#B392F0">Default</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">    r.</span><span style="color:#B392F0">GET</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"/"</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">func</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">c</span><span style="color:#F97583"> *</span><span style="color:#B392F0">gin</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Context</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        c.</span><span style="color:#B392F0">String</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">200</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"Welcome to Gin!"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    })</span></span>
+<span class="line"><span style="color:#E1E4E8">    r.</span><span style="color:#B392F0">Run</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">":8080"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>If you run the application and visit <code>http://localhost:8080/</code>, you should see “Welcome to Gin!”.</p>
+<h2 id="integrating-pprof-using-gin-contribpprof">Integrating <code>pprof</code> using <code>gin-contrib/pprof</code></h2>
+<ul>
+<li>Start by installing the <code>gin-contrib/pprof</code> package:</li>
+</ul>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">go</span><span style="color:#E1E4E8"> get </span><span style="color:#F97583">-</span><span style="color:#E1E4E8">u github.com</span><span style="color:#F97583">/</span><span style="color:#E1E4E8">gin</span><span style="color:#F97583">-</span><span style="color:#E1E4E8">contrib</span><span style="color:#F97583">/</span><span style="color:#E1E4E8">pprof</span></span></code></pre>
+<ul>
+<li>Modify your Gin application to integrate <code>pprof</code>:</li>
+</ul>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">package</span><span style="color:#B392F0"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> (</span></span>
+<span class="line"><span style="color:#9ECBFF">    "</span><span style="color:#B392F0">github.com/gin-gonic/gin</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#9ECBFF">    "</span><span style="color:#B392F0">github.com/gin-contrib/pprof</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> main</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#E1E4E8">    r </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> gin.</span><span style="color:#B392F0">Default</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">    r.</span><span style="color:#B392F0">GET</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"/"</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">func</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">c</span><span style="color:#F97583"> *</span><span style="color:#B392F0">gin</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Context</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        c.</span><span style="color:#B392F0">String</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">200</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"Welcome to Gin!"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    })</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#6A737D">    // Use the pprof middleware</span></span>
+<span class="line"><span style="color:#E1E4E8">    pprof.</span><span style="color:#B392F0">Register</span><span style="color:#E1E4E8">(r)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">    r.</span><span style="color:#B392F0">Run</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">":8080"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>The <code>pprof.Register(r)</code> function attaches all standard <code>net/http/pprof</code> handlers to the provided <code>*gin.Engine</code>.</p>
+<h2 id="accessing-profiling-data">Accessing Profiling Data</h2>
+<p>After starting your application:</p>
+<ul>
+<li>Visit <code>http://localhost:8080/debug/pprof/</code> for an overview.</li>
+<li>Navigate to <code>http://localhost:8080/debug/pprof/heap</code> for heap profile data.</li>
+<li>Use <code>http://localhost:8080/debug/pprof/goroutine</code> for a goroutine profile.</li>
+</ul>
+<p>… and so on for other available profiles.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Using <code>gin-contrib/pprof</code> simplifies the process of integrating Go’s built-in <code>pprof</code> profiling tools with the Gin framework. By taking advantage of this integration, developers can quickly gather performance data on their web applications, making it easier to optimize and debug. Happy profiling!</p>
+<h2 id="reference">Reference</h2>
+<ul>
+<li><a href="https://github.com/gin-contrib/pprof">github.com/gin-contrib/pprof</a></li>
+</ul> </article> <div style="max-width: 800px; margin: 0 auto 5rem auto; border-top: 2px solid #333; padding-top: 2rem; text-align: center;"> <a href="/blog" style="font-family: var(--font-heading); font-size: 2rem; color: var(--p5-white); text-transform: uppercase;">
+← Back to Log
+</a> </div> </div>  </main> <footer class="site-footer"> <div class="container"> <div class="footer-tagline">NEVER STOP BUILDING</div> <div class="footer-socials"> <a href="https://github.com/pandabb3356" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-icon"> <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg> </a> <!-- Space for future icons (LinkedIn, Twitter, etc.) --> </div> <div class="footer-cr"> <p>&copy; 2026 Ken Huang — All Rights Reserved.</p> <p>Built with <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a></p> </div> </div> </footer> <script type="module">const s=new IntersectionObserver(e=>{e.forEach(r=>{r.isIntersecting&&r.target.classList.add("visible")})},{threshold:.1}),t=()=>{document.querySelectorAll(".reveal").forEach(e=>s.observe(e))};t();</script> </body> </html>

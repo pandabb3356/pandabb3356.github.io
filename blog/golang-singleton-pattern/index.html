@@ -1,0 +1,80 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><title>Implementing the Singleton Design Pattern in Go</title><link rel="canonical" href="https://pandabb3356.github.io/blog/golang-singleton-pattern/"><meta name="description" content="In software design, the Singleton pattern is a creational design pattern that ensures a class has only one instance and provides a global point of access to that instance."><meta name="robots" content="index, follow"><meta property="og:title" content="Implementing the Singleton Design Pattern in Go"><meta property="og:type" content="website"><meta property="og:image" content="images/covers/stephen-crane-xrQRs03TcKs-unsplash.jpg"><meta property="og:url" content="https://pandabb3356.github.io/blog/golang-singleton-pattern/"><meta property="og:description" content="In software design, the Singleton pattern is a creational design pattern that ensures a class has only one instance and provides a global point of access to that instance."><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Implementing the Singleton Design Pattern in Go"><meta name="twitter:image" content="images/covers/stephen-crane-xrQRs03TcKs-unsplash.jpg"><meta name="twitter:description" content="In software design, the Singleton pattern is a creational design pattern that ensures a class has only one instance and provides a global point of access to that instance."><meta name="viewport" content="width=device-width"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="generator" content="Astro v5.17.3"><!-- Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=G-M3C36GR88F"></script><script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-M3C36GR88F');
+        </script><!-- Google Fonts: Anton (Heading), Bebas Neue (Sub), Inter (Body), JetBrains Mono (Code) --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/_page_.XZvY61kE.css"></head> <body> <!-- Note: We will update the Header component itself next if it has inline styles, but global.css handles most layout now --> <header class="site-header"> <div class="container header-inner"> <a href="/" class="logo">KH</a> <nav class="nav-links"> <a href="/#intro">Intro</a><a href="/#about">About</a><a href="/#works">Works</a><a href="/blog">Blog</a> </nav> </div> </header> <main>   <div class="article-hero reveal"> <div class="hero-bg-slash"></div> <div class="container hero-content"> <div class="article-meta"> 2023.08.15 <span class="meta-divider">//</span> <span class="meta-category">Golang</span> </div> <h1 class="article-title"> Implementing the Singleton Design Pattern in Go </h1> <div class="article-tags"> <a href="/tags/Golang" class="article-tag">
+#Golang </a><a href="/tags/Design Patterns" class="article-tag">
+#Design Patterns </a><a href="/tags/Singleton" class="article-tag">
+#Singleton </a> </div> </div> </div>  <div class="container reveal"> <article class="prose" style="max-width: 800px; margin: 0 auto; background: var(--bg-color); padding: 2rem 0 5rem 0;"> <p>In software design, the Singleton pattern is a creational design pattern that ensures a class has only one instance and provides a global point of access to that instance. In this article, we’ll explore how to implement the Singleton pattern in the Go programming language for a Pelican Markdown article website.</p>
+<h2 id="the-singleton-design-pattern">The Singleton Design Pattern</h2>
+<p>The Singleton pattern is particularly useful when you want to ensure there’s only one instance of a class, such as a configuration manager or a database connection pool. This can prevent resource wastage and synchronization issues.</p>
+<h2 id="implementing-singleton-in-go">Implementing Singleton in Go</h2>
+<p>Let’s implement a Singleton pattern for managing Pelican Markdown articles in Go.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">package</span><span style="color:#B392F0"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> (</span></span>
+<span class="line"><span style="color:#9ECBFF">	"</span><span style="color:#B392F0">sync</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Article represents a Pelican Markdown article</span></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> Article</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">	Title   </span><span style="color:#F97583">string</span></span>
+<span class="line"><span style="color:#E1E4E8">	Content </span><span style="color:#F97583">string</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// SingletonArticleManager is a struct that manages a single instance of Article</span></span>
+<span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> SingletonArticleManager</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">	article </span><span style="color:#F97583">*</span><span style="color:#B392F0">Article</span></span>
+<span class="line"><span style="color:#E1E4E8">	once    </span><span style="color:#B392F0">sync</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Once</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">var</span><span style="color:#E1E4E8"> instance </span><span style="color:#F97583">*</span><span style="color:#B392F0">SingletonArticleManager</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// GetInstance returns the single instance of SingletonArticleManager</span></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> GetInstance</span><span style="color:#E1E4E8">() </span><span style="color:#F97583">*</span><span style="color:#B392F0">SingletonArticleManager</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">	if</span><span style="color:#E1E4E8"> instance </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> nil</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">		instance </span><span style="color:#F97583">=</span><span style="color:#F97583"> &#x26;</span><span style="color:#B392F0">SingletonArticleManager</span><span style="color:#E1E4E8">{}</span></span>
+<span class="line"><span style="color:#E1E4E8">		instance.</span><span style="color:#B392F0">init</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">	}</span></span>
+<span class="line"><span style="color:#F97583">	return</span><span style="color:#E1E4E8"> instance</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// init is used to initialize the singleton instance</span></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">s </span><span style="color:#F97583">*</span><span style="color:#B392F0">SingletonArticleManager</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">init</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#E1E4E8">	s.once.</span><span style="color:#B392F0">Do</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">func</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#6A737D">		// Initialize the default article</span></span>
+<span class="line"><span style="color:#E1E4E8">		s.article </span><span style="color:#F97583">=</span><span style="color:#F97583"> &#x26;</span><span style="color:#B392F0">Article</span><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#E1E4E8">			Title:   </span><span style="color:#9ECBFF">"Default Title"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">			Content: </span><span style="color:#9ECBFF">"Default Content"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">		}</span></span>
+<span class="line"><span style="color:#E1E4E8">	})</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// GetArticle returns the current Article managed by the singleton</span></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">s </span><span style="color:#F97583">*</span><span style="color:#B392F0">SingletonArticleManager</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">GetArticle</span><span style="color:#E1E4E8">() </span><span style="color:#F97583">*</span><span style="color:#B392F0">Article</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">	return</span><span style="color:#E1E4E8"> s.article</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// UpdateArticle updates the content of the managed Article</span></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#E1E4E8"> (</span><span style="color:#FFAB70">s </span><span style="color:#F97583">*</span><span style="color:#B392F0">SingletonArticleManager</span><span style="color:#E1E4E8">) </span><span style="color:#B392F0">UpdateArticle</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">title</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">content</span><span style="color:#F97583"> string</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">	s.article.Title </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> title</span></span>
+<span class="line"><span style="color:#E1E4E8">	s.article.Content </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> content</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> main</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#6A737D">	// Usage example</span></span>
+<span class="line"><span style="color:#E1E4E8">	manager </span><span style="color:#F97583">:=</span><span style="color:#B392F0"> GetInstance</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">	// Get the managed article</span></span>
+<span class="line"><span style="color:#E1E4E8">	article </span><span style="color:#F97583">:=</span><span style="color:#E1E4E8"> manager.</span><span style="color:#B392F0">GetArticle</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">	// Print article details</span></span>
+<span class="line"><span style="color:#B392F0">	println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Article Title:"</span><span style="color:#E1E4E8">, article.Title)</span></span>
+<span class="line"><span style="color:#B392F0">	println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Article Content:"</span><span style="color:#E1E4E8">, article.Content)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>In this example, the <code>SingletonArticleManager</code> struct manages a single instance of the Article struct. We use the sync.Once type to ensure that initialization happens only once. The GetInstance function provides access to the singleton instance.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>The Singleton design pattern is a powerful tool for ensuring a single instance of a class in your application. In Go, you can implement this pattern using synchronization mechanisms like sync.Once to ensure safe and efficient initialization.</p> </article> <div style="max-width: 800px; margin: 0 auto 5rem auto; border-top: 2px solid #333; padding-top: 2rem; text-align: center;"> <a href="/blog" style="font-family: var(--font-heading); font-size: 2rem; color: var(--p5-white); text-transform: uppercase;">
+← Back to Log
+</a> </div> </div>  </main> <footer class="site-footer"> <div class="container"> <div class="footer-tagline">NEVER STOP BUILDING</div> <div class="footer-socials"> <a href="https://github.com/pandabb3356" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-icon"> <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg> </a> <!-- Space for future icons (LinkedIn, Twitter, etc.) --> </div> <div class="footer-cr"> <p>&copy; 2026 Ken Huang — All Rights Reserved.</p> <p>Built with <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a></p> </div> </div> </footer> <script type="module">const s=new IntersectionObserver(e=>{e.forEach(r=>{r.isIntersecting&&r.target.classList.add("visible")})},{threshold:.1}),t=()=>{document.querySelectorAll(".reveal").forEach(e=>s.observe(e))};t();</script> </body> </html>
